@@ -197,7 +197,8 @@ CONFIG_ALIGNMENT_TRAP=y
 #
 # Boot options
 #
-CONFIG_ZBOOT_ROM_TEXT=0x0
+CONFIG_ZBOOT_ROM=y
+CONFIG_ZBOOT_ROM_TEXT=0x00100000
 CONFIG_ZBOOT_ROM_BSS=0x0
 CONFIG_CMDLINE="mtdparts=m25p80:1152K@0x20000(Kernel)ro,5120k(RootFs)ro,4608k(Config),1024k(KImage),2816k(RImage),896k(CImage),128k(u-boot-env),128k(dev),16128k@0x0000(U-Boot) root=31:02 ro rootfstype=jffs2"
 # CONFIG_XIP_KERNEL is not set
