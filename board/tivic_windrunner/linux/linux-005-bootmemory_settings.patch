@@ -1,0 +1,13 @@
+diff -u a/arch/arm/mach-str8100/Makefile.boot b/arch/arm/mach-str8100/Makefile.boot
+--- a/arch/arm/mach-str8100/Makefile.boot	2012-01-17 07:09:03.754744243 +1100
++++ b/arch/arm/mach-str8100/Makefile.boot	2012-01-17 07:09:24.821296782 +1100
+@@ -3,7 +3,7 @@
+ #   PARAMS_PHYS must be within 4MB of ZRELADDR
+ #   INITRD_PHYS must be in RAM
+ 
+-   zreladdr-y	:= 0x00008000
++   zreladdr-y	:= 0x00100000
+-params_phys-y	:= 0x00000100
++params_phys-y	:= 0x00100100
+ initrd_phys-y	:= 0x00A00000
+ kernel_phys-y	:= 0x00600000
