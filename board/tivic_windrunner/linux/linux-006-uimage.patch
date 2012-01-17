@@ -1,0 +1,22 @@
+diff -u a/arch/arm/boot/Makefile b/arch/arm/boot/Makefile
+--- a/arch/arm/boot/Makefile	2012-01-17 20:36:24.853469894 +1100
++++ b/arch/arm/boot/Makefile	2012-01-17 20:39:21.089181811 +1100
+@@ -19,6 +19,8 @@
+ #   PARAMS_PHYS must be within 4MB of ZRELADDR
+ #   INITRD_PHYS must be in RAM
+ ZRELADDR    := $(zreladdr-y)
++FORTY=40
++ZRELADDR_PLUS_FORTY    := $($(zreladdr-y)+$(FORTY))
+ PARAMS_PHYS := $(params_phys-y)
+ INITRD_PHYS := $(initrd_phys-y)
+ KERNEL_PHYS := $(kernel_phys-y)
+@@ -59,8 +61,8 @@
+ 
+ quiet_cmd_uimage = UIMAGE  $@
+-		   -C none -a $(ZRELADDR) -e $(ZRELADDR) \
+-		   -n 'Linux-$(KERNELRELEASE)' -d $< $@
++		   -C none -a $(ZRELADDR) -e 0x00100040 \
++		   -n 'Linux-$(KERNELRELEASE)' -d $< $@
+ 
+ $(obj)/uImage:	$(obj)/zImage FORCE
+ 	$(call if_changed,uimage)
