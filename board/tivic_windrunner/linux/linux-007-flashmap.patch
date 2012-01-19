@@ -1,0 +1,40 @@
+Index: a/arch/arm/mach-str8100/str8100_setup.c
+===================================================================
+--- a/arch/arm/mach-str8100/str8100_setup.c 2012-01-19 21:25:15.459508039 +1100
++++ b/arch/arm/mach-str8100/str8100_setup.c	2012-01-19 21:42:26.840587235 +1100
+@@ -371,24 +371,30 @@
+ 	{
+ 		.name =		"ALL",
+ 		.offset =	CONFIG_ARMBOOT_OFFSET,
+-		.size =		0x800000-CONFIG_ARMBOOT_OFFSET,
++		.size =		CONFIG_FLASH_SIZE-CONFIG_ARMBOOT_OFFSET,
+ 	},{
+ 		.name =		"ARMBOOT",
+ 		.offset =	CONFIG_ARMBOOT_OFFSET,
+ 		.size =		CONFIG_KERNEL_OFFSET-CONFIG_ARMBOOT_OFFSET,
+ 	},{
+-		.name =		"Linux Kernel",
++		.name =		"Kernel",
+ 		.offset =	CONFIG_KERNEL_OFFSET,
+ 		.size =		CONFIG_ROOTFS_OFFSET-CONFIG_KERNEL_OFFSET,
+ 	},{
+-		.name =		"MTD Disk1",
++		.name =		"RootFS",
+ 		.offset =	CONFIG_ROOTFS_OFFSET,
+ 		.size =		CONFIG_CFG_OFFSET-CONFIG_ROOTFS_OFFSET,
+ 	},{
+-		.name =		"MTD Disk2",
++		.name =		"Configs",
+ 		.offset =	CONFIG_CFG_OFFSET,
+-		.size =		0x800000-CONFIG_CFG_OFFSET,
++		.size =		CONFIG_UBOOT_ENV_OFFSET-CONFIG_CFG_OFFSET,
+ 	}
++    {
++		.name =		"UBootEnv",
++		.offset =	CONFIG_UBOOT_ENV_OFFSET,
++		.size =		CONFIG_FLASH_SIZE-CONFIG_UBOOT_ENV_OFFSET,
++	}
++
+ };
+ 
+ static struct flash_platform_data str8100_spi_flash_data = {
