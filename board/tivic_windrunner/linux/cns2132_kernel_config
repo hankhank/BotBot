@@ -20,11 +20,16 @@ CONFIG_CONSOLE_BAUD_RATE=38400
 # Flash configuration
 # Match hard coded in arch/arm/mach-str8100/str8100_setup.c
 #
+# 256K for bootloader
+# 1MB for Kernel
+# 13.5MB for Rootfs
+# 256k for random configs
+# 750k for uboot configs
 CONFIG_FLASH_SIZE=0x1000000
 CONFIG_ARMBOOT_OFFSET=0x0
-CONFIG_KERNEL_OFFSET=0x20000
+CONFIG_KERNEL_OFFSET=0x40000
 CONFIG_ROOTFS_OFFSET=0x140000
-CONFIG_CFG_OFFSET=0xEA0000
+CONFIG_CFG_OFFSET=0xF40000
 CONFIG_UBOOT_ENV_OFFSET=0xF80000
 
 #
@@ -203,7 +208,7 @@ CONFIG_ALIGNMENT_TRAP=y
 #
 CONFIG_ZBOOT_ROM_TEXT=0x00100000
 CONFIG_ZBOOT_ROM_BSS=0x0
-CONFIG_CMDLINE="root=/dev/mtdblock2 rootfstype=jffs2"
+CONFIG_CMDLINE="root=/dev/mtdblock3 rw rootfstype=jffs2"
 # CONFIG_XIP_KERNEL is not set
 
 #
