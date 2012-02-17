@@ -1,88 +1,88 @@
 diff -upNr linux-2.6.36//arch/arm/mach-str8100/Kconfig linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig
 --- linux-2.6.36//arch/arm/mach-str8100/Kconfig	2010-11-09 23:47:46.000000000 +0100
 +++ linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig	2011-08-18 00:49:05.525465427 +0200
-@@ -103,61 +103,34 @@
+@@ -103,34 +103,61 @@
  	depends on STR8100_GPIO	
  	select GENERIC_GPIO
  
--config STR8100_WLX652_LEDS
--        tristate "Star 8132 - WLX652 - Led Module"
--        default n
--        help
--          enable led handling
--
--config STR8100_WLX652_BUTTON
--        tristate "Star 8132 - WLX652 - Button Module"
--        default n
--        help
--          enable button operation
--
++config STR8100_WLX652_LEDS
++        tristate "Star 8132 - WLX652 - Led Module"
++        default n
++        help
++          enable led handling
++
++config STR8100_WLX652_BUTTON
++        tristate "Star 8132 - WLX652 - Button Module"
++        default n
++        help
++          enable button operation
++
  comment "Flash MAP"
  config STR8100_FLASH_PART
  	bool "STR8100 flash partition setting"
  
  if STR8100_FLASH_PART
--	config FLASH_SIZE 
--	hex "FLASH SIZE" 
--	default 0x1000000 
--	help 
--	  The armboot start offset in flash layout 
--	
--	config ARMBOOT_OFFSET 
--	hex "ARMBOOT OFFSET" 
--	default 0x0 
--	help 
--	  The armboot start offset in flash layout 
--	
--	config KERNEL_OFFSET 
--	hex "KERNEL OFFSET" 
--	default 0x40000 
--	default 0x20000 
--	help 
--	  The kernel start offset in flash layout 
--	
--	config ROOTFS_OFFSET 
--	hex "ROOTFS OFFSET" 
--	default 0x140000 
--	default 0x1400000 
--	help 
--	  The rootfs start offset in flash layout 
--	
--	config CFG_OFFSET 
--	hex "CFG OFFSET" 
--	default 0x7f0000 
--	default 0xEA0000 
--	help 
--	  The cfg start offset in flash layout 
--	
--	config UBOOT_ENV_OFFSET 
--	hex "UBOOT ENV OFFSET" 
--	default 0xF80000 
--	help 
--	  The cfg 
-+	config ARMBOOT_OFFSET
-+	hex "ARMBOOT OFFSET"
-+	default 0x0
-+	help
-+	  The armboot start offset in flash layout
-+
-+	config KERNEL_OFFSET
-+	hex "KERNEL OFFSET"
-+	default 0x40000
-+	help
-+	  The kernel start offset in flash layout
-+
-+	config ROOTFS_OFFSET
-+	hex "ROOTFS OFFSET"
-+	default 0x140000
-+	help
-+	  The rootfs start offset in flash layout
-+
-+	config CFG_OFFSET
-+	hex "CFG OFFSET"
-+	default 0x7f0000
-+	help
-+	  The cfg start offset in flash layout
++	config FLASH_SIZE 
++	hex "FLASH SIZE" 
++	default 0x1000000 
++	help 
++	  The armboot start offset in flash layout 
++	
++	config ARMBOOT_OFFSET 
++	hex "ARMBOOT OFFSET" 
++	default 0x0 
++	help 
++	  The armboot start offset in flash layout 
++	
++	config KERNEL_OFFSET 
++	hex "KERNEL OFFSET" 
++	default 0x40000 
++	default 0x20000 
++	help 
++	  The kernel start offset in flash layout 
++	
++	config ROOTFS_OFFSET 
++	hex "ROOTFS OFFSET" 
++	default 0x140000 
++	default 0x1400000 
++	help 
++	  The rootfs start offset in flash layout 
++	
++	config CFG_OFFSET 
++	hex "CFG OFFSET" 
++	default 0x7f0000 
++	default 0xEA0000 
++	help 
++	  The cfg start offset in flash layout 
++	
++	config UBOOT_ENV_OFFSET 
++	hex "UBOOT ENV OFFSET" 
++	default 0xF80000 
++	help 
++	  The cfg 
+-	config ARMBOOT_OFFSET
+-	hex "ARMBOOT OFFSET"
+-	default 0x0
+-	help
+-	  The armboot start offset in flash layout
+-
+-	config KERNEL_OFFSET
+-	hex "KERNEL OFFSET"
+-	default 0x40000
+-	help
+-	  The kernel start offset in flash layout
+-
+-	config ROOTFS_OFFSET
+-	hex "ROOTFS OFFSET"
+-	default 0x140000
+-	help
+-	  The rootfs start offset in flash layout
+-
+-	config CFG_OFFSET
+-	hex "CFG OFFSET"
+-	default 0x7f0000
+-	help
+-	  The cfg start offset in flash layout
  endif
  
  
