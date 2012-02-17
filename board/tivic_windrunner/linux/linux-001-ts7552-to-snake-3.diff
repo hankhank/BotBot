@@ -1,0 +1,1227 @@
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/Kconfig linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig
+--- linux-2.6.36//arch/arm/mach-str8100/Kconfig	2010-11-09 23:47:46.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig	2011-08-18 00:49:05.525465427 +0200
+@@ -103,34 +103,54 @@ config STR8100_GPIO_GENERIC_INTERFACE
+ 	depends on STR8100_GPIO	
+ 	select GENERIC_GPIO
+ 
++config STR8100_WLX652_LEDS
++        tristate "Star 8132 - WLX652 - Led Module"
++        default n
++        help
++          enable led handling
++
++config STR8100_WLX652_BUTTON
++        tristate "Star 8132 - WLX652 - Button Module"
++        default n
++        help
++          enable button operation
++
+ comment "Flash MAP"
+ config STR8100_FLASH_PART
+ 	bool "STR8100 flash partition setting"
+ 
+ if STR8100_FLASH_PART
+-	config ARMBOOT_OFFSET
+-	hex "ARMBOOT OFFSET"
++	config BOOT_OFFSET
++	hex "BOOT OFFSET"
+ 	default 0x0
+ 	help
+ 	  The armboot start offset in flash layout
+ 
++        config CFG_OFFSET
++        hex "CFG OFFSET"
++        default 0x40000
++        help
++          The cfg start offset in flash layout
++
++
+ 	config KERNEL_OFFSET
+ 	hex "KERNEL OFFSET"
+-	default 0x40000
++	default 0x60000
+ 	help
+ 	  The kernel start offset in flash layout
+ 
+-	config ROOTFS_OFFSET
+-	hex "ROOTFS OFFSET"
+-	default 0x140000
++	config INITRD_OFFSET
++	hex "INITRD OFFSET"
++	default 0x150000
+ 	help
+-	  The rootfs start offset in flash layout
++	  The initrd start offset in flash layout
+ 
+-	config CFG_OFFSET
+-	hex "CFG OFFSET"
+-	default 0x7f0000
++	config WEB_OFFSET
++	hex "WEB OFFSET"
++	default 0x0
+ 	help
+-	  The cfg start offset in flash layout
++	  The old web start offset in flash layout
++
+ endif
+ 
+ 
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/Makefile linux-2.6.36-snake//arch/arm/mach-str8100/Makefile
+--- linux-2.6.36//arch/arm/mach-str8100/Makefile	2010-11-09 23:47:46.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/Makefile	2011-08-17 23:40:15.581275157 +0200
+@@ -23,4 +23,5 @@ obj-$(CONFIG_LE88221_CONTROL) += le88221
+ obj-$(CONFIG_STR8100_PCM_LEGERITY_2PHONE_DEMO) += str8100_demo_pcm_legerity_2phone.o
+ obj-$(CONFIG_STR8100_RTC)	+= str8100_rtc.o
+ obj-$(CONFIG_STR8100_GPIO)	+= str8100_gpio.o
+-
++obj-$(CONFIG_STR8100_WLX652_LEDS) += nasleds.o
++obj-$(CONFIG_STR8100_WLX652_BUTTON) += resetbutton.o 
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/nasleds.c linux-2.6.36-snake//arch/arm/mach-str8100/nasleds.c
+--- linux-2.6.36//arch/arm/mach-str8100/nasleds.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/nasleds.c	2011-08-17 23:37:44.348535827 +0200
+@@ -0,0 +1,443 @@
++/*
++ *  leds_wlx652.c: Creates a char device that can turn the on and off the
++ *  leds of the WLX 652 board.
++ *   
++ *  It control the leds that are connected to the following pins:
++ *     GPIOA[1] = system led
++ *     GPIOA[16] = USB port 1 led
++ *     GPIOA[17] = USB port 2 led 
++ *
++ * 
++ * To control the leds, write a unsigned char (1 byte) to the corresponding 
++ * device file in /dev.
++ * 
++ * The byte that control the leds has the following meaning:
++ *
++ * Action: 4 most significant bits:
++ *  0010 = (0x2) toggle a led
++ *  0011 = (0x3) turn all leds off (does not matter the 4 less significant bits)
++ *  0100 = (0x4) turn all leds on (does not matter the 4 less significant bits)
++ *  0101 = (0x5) turn a led on
++ *  0110 = (0x6) turn a led off
++ *  1010 = (0xA) start blinking a led for 10 seconds, stay on at end
++ *  1011 = (0xB) start blinking a led for 20 seconds, stay on at end
++ *  1100 = (0xC) start blinking a led until device shuts down
++ *
++ * Led number: 4 less significant bits:
++ *  0000 = (0x0) led 1 (SYS)
++ *  0001 = (0x1) led 2 (USB 1)
++ *  0010 = (0x2) led 3 (USB 2)
++ *
++ *  Created by Miguel Moreto
++ *  Modified by Douglas Gazineu
++ * 
++ *******************************************************************************
++ * 
++ *  This file is free software; you can redistribute it and/or modify 
++ *  it under the terms of the GNU General Public License, Version 2, as 
++ *  published by the Free Software Foundation. 
++ *
++ *  This file is distributed in the hope that it will be useful, 
++ *  but AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty of 
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or 
++ *  NONINFRINGEMENT.  See the GNU General Public License for more details. 
++ *
++ *  You should have received a copy of the GNU General Public License 
++ *  along with this file; if not, write to the Free Software 
++ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA or 
++ *  visit http://www.gnu.org/licenses/. 
++ *
++ *  This file may also be available under a different license from Cavium. 
++ *  Contact Cavium Networks for more information
++ *
++ *****************************************************************************/
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/fs.h>
++#include <linux/device.h>
++#include <linux/types.h>
++#include <asm/uaccess.h>        /* for put_user */
++#include <linux/delay.h>
++#include <asm/arch/star_gpio.h>
++#include <linux/types.h>
++#include <linux/stat.h>
++#include <linux/fcntl.h>
++#include <linux/unistd.h>
++
++MODULE_LICENSE("GPL");
++
++/*  
++ *  Prototypes - this would normally go in a .h file
++ */
++static int device_open(struct inode *, struct file *);
++static int device_release(struct inode *, struct file *);
++static ssize_t device_read(struct file *, char *, size_t, loff_t *);
++static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
++
++#define SUCCESS 0
++#define DEVICE_NAME "nasleds"   /* Dev name as it appears in /proc/devices   */
++#define DRIVER_AUTHOR "Miguel Moreto <miguelmoreto@gmail.com>"
++#define DRIVER_DESC "Driver interface for NAS 652 leds."
++
++#define BUF_LEN 80              /* Max length of the message from the device */
++
++#define LED_MASK_A 			0xfe3fe07f
++
++#define LED_MASK 			LED_MASK_A
++#define GPIO_DIRECTION_REG		GPIOA_DIRECTION_REG
++#define GPIO_DATA_OUTPUT_REG 		GPIOA_DATA_OUTPUT_REG
++#define GPIO_DATA_BIT_SET_REG 		GPIOA_DATA_BIT_SET_REG
++#define GPIO_DATA_BIT_CLEAR_REG 	GPIOA_DATA_BIT_CLEAR_REG
++
++#define LED_DELAY_MS		500
++
++#define SYS_LED     1 << 1
++#define USB1_LED     1 << 16
++#define USB2_LED     1 << 17
++
++
++
++
++/* 
++ * Global variables are declared as static, so are global within the file. 
++ */
++
++static int Major;               /* Major number assigned to our device driver */
++static int Device_Open = 0;     /* Is device open?  
++                                 * Used to prevent multiple access to device */
++static char msg[BUF_LEN];       /* The msg the device will give when asked */
++static char *msg_Ptr;
++
++//static struct class *driverled_class;
++
++static struct file_operations fops = {
++        .read = device_read,
++        .write = device_write,
++        .open = device_open,
++        .release = device_release
++};
++ 
++/*
++ * ===============================================================================
++ *  LED CONTROL FUNCTIONS:
++ *  Copyright (c) 2008 Cavium Networks 
++ * ===============================================================================
++ */
++/*
++ * Configure all LEDs on
++ */
++void str8100_led_all_on(void)
++{
++    /*
++     * perform Write Low to GPIO Pin
++     */    
++    GPIO_DATA_BIT_CLEAR_REG |= LED_MASK;
++}
++
++/*
++ * Configure all LEDs off
++ */
++void str8100_led_all_off(void)
++{
++    /*
++     * perform Write High to GPIO Pin
++     */
++    GPIO_DATA_BIT_SET_REG |= LED_MASK;
++}
++
++/*
++ * Configure one LED on
++ */
++void str8100_led_on(unsigned int led_index)
++{
++    /*
++     * perform Write Low to GPIO Pin
++     */
++    GPIO_DATA_BIT_CLEAR_REG |= (led_index & LED_MASK);
++}
++
++/*
++ * Configure one LED off
++ */
++void str8100_led_off(unsigned int led_index)
++{
++    /*
++     * perform Write High to GPIO Pin
++     */
++    GPIO_DATA_BIT_SET_REG |= (led_index & LED_MASK);
++}
++
++/*
++ * Toggle one LED on/off
++ */
++void str8100_led_toggle(unsigned int led_index)
++{     
++    volatile unsigned int    data_out_state;
++
++
++    /*
++     * 1. read GPIO Data Out State
++     * 2. if GPIO High, turn LED on, otherwise, turn LED off
++     */
++    data_out_state = GPIO_DATA_OUTPUT_REG;
++    
++    if (data_out_state & led_index& LED_MASK)
++    {
++        // GPIO High, i.e., LED is off. Now, turn it on
++        str8100_led_on(led_index & LED_MASK);
++    }
++    else
++    {
++        // GPIO Low, i.e., LED is on. Now turn it off
++        str8100_led_off(led_index & LED_MASK);
++    }
++}
++
++/*
++ * Blink one LED on/off for 10 seconds, on at end
++ */
++void str8100_led_blink_10(unsigned int led_index)
++{     
++	int cnt;
++	cnt = 0;
++	while(cnt<10){
++		str8100_led_on(led_index & LED_MASK);
++		msleep(500);
++		str8100_led_off(led_index & LED_MASK);
++		msleep(500);			
++		cnt++;
++	}
++}
++
++/*
++ * Blink one LED on/off for 20 seconds, on at end
++ */
++void str8100_led_blink_20(unsigned int led_index)
++{     
++	int cnt;
++	cnt = 0;
++	while(cnt<20){
++		str8100_led_off(led_index & LED_MASK);
++		msleep(500);			
++		str8100_led_on(led_index & LED_MASK);
++		msleep(500);
++		cnt++;
++	}
++}
++
++/*
++ * Blink one LED on/off until device shuts down
++ */
++void str8100_led_blink(unsigned int led_index)
++{     
++	int cnt;
++	cnt = 0;
++	while(cnt<10){
++		str8100_led_off(led_index & LED_MASK);
++		msleep(500);			
++		str8100_led_on(led_index & LED_MASK);
++		msleep(500);
++	}
++}
++
++/*
++ * Initialize LED settings
++ */
++void str8100_led_init(void)
++{
++
++
++    /*
++     * Configure all GPIO pins as follows:
++     * 1. output pins
++     * 2. turn all leds off
++     */
++    printk("%s: ",__FUNCTION__);
++
++    GPIO_DIRECTION_REG |= LED_MASK;
++    
++    str8100_led_all_off();
++	str8100_led_on(SYS_LED);
++
++}
++/*
++ * ===============================================================================
++ *  DRIVER FUNCTIONS:
++ *  Copyright (c) 2008 Cavium Networks 
++ * ===============================================================================
++ */
++/*
++ * This function is called when the module is loaded
++ */
++static int __init ledmod_start(void)
++{
++	//mode_t mode;
++	//struct device *err_dev;
++	str8100_led_init(); // Turn off all led on startup, but SYS_LED.
++
++        Major = register_chrdev(254, DEVICE_NAME, &fops); // The major number of the driver.
++
++        if (Major < 0) {
++          printk(KERN_ALERT "Registering NAS 652 led device driver failed with %d\n", Major);
++          return Major;
++        }
++
++    	printk(KERN_INFO "Registered NAS 652 led device driver.\n");   
++        return SUCCESS;
++}
++
++/*
++ * This function is called when the module is unloaded
++ */
++static void __exit ledmod_end(void)
++{
++        /* 
++         * Unregister the device 
++         */
++	str8100_led_all_off(); // Turn off all led on cleanup.
++
++	printk(KERN_INFO "Unregistering NAS 652 led device driver.\n");
++
++	unregister_chrdev(Major, DEVICE_NAME);
++}
++
++/*
++ * Methods
++ */
++
++/* 
++ * Called when a process tries to open the device file, like
++ * "cat /dev/mycharfile"
++ */
++static int device_open(struct inode *inode, struct file *file)
++{
++
++        if (Device_Open)
++                return -EBUSY;
++
++        Device_Open++;
++        msg_Ptr = msg;
++
++        try_module_get(THIS_MODULE);
++
++        return SUCCESS;
++}
++
++/* 
++ * Called when a process closes the device file.
++ */
++static int device_release(struct inode *inode, struct file *file)
++{
++        Device_Open--;          /* We're now ready for our next caller */
++
++        /* 
++         * Decrement the usage count, or else once you opened the file, you'll
++         * never get get rid of the module. 
++         */
++        module_put(THIS_MODULE);
++
++        return 0;
++}
++
++/* 
++ * Called when a process, which already opened the dev file, attempts to
++ * read from it.
++ */
++static ssize_t device_read(struct file *filp,   /* see include/linux/fs.h   */
++                           char *buffer,        /* buffer to fill with data */
++                           size_t length,       /* length of the buffer     */
++                           loff_t * offset)
++{
++        /*
++         * Number of bytes actually written to the buffer 
++         */
++        int bytes_read = 0;
++
++        /*
++         * If we're at the end of the message, 
++         * return 0 signifying end of file 
++         */
++        if (*msg_Ptr == 0)
++                return 0;
++
++        /* 
++         * Actually put the data into the buffer 
++         */
++        while (length && *msg_Ptr) {
++
++                /* 
++                 * The buffer is in the user data segment, not the kernel 
++                 * segment so "*" assignment won't work.  We have to use 
++                 * put_user which copies data from the kernel data segment to
++                 * the user data segment. 
++                 */
++                put_user(*(msg_Ptr++), buffer++);
++
++                length--;
++                bytes_read++;
++        }
++
++        /* 
++         * Most read functions return the number of bytes put into the buffer
++         */
++        return bytes_read;
++}
++
++/*  
++ * Called when a process writes to dev file
++ * Writes 
++ */
++static ssize_t device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
++{
++
++/*
++  Action: 4 most significant bits:
++  0010 = (2) togle
++  0011 = (3) turn all leds off
++  0100 = (4) turn all leds on
++  0101 = (5) turn a led on
++  0110 = (6) turn a led off 
++  1010 = (A) start blinking a led for 10 seconds, stay on at end
++  1011 = (B) start blinking a led for 20 seconds, stay on at end
++  1100 = (C) start blinking a led undefinitely
++
++  Led number: 4 less significant bits:
++  0000 = (0) led 1
++  0001 = (1) led 2
++  0010 = (2) led 3
++*/
++	unsigned int ledlist[]={1,16,17};
++	unsigned char tmp;
++	unsigned char action;
++	unsigned char leds;
++	int ret;
++	unsigned int led;
++	
++	ret = get_user(tmp, buff);
++
++	action = tmp & 0xF0;
++	leds = tmp & 0x0F;
++
++	led = 1 << ledlist[leds]&LED_MASK;
++	led = 1 << ledlist[leds];
++
++
++	switch (action){
++	    case 0xA0: str8100_led_blink_10(led); break;
++	    case 0xB0: str8100_led_blink_20(led); break;
++	    case 0xC0: str8100_led_blink(led); break;
++	    case 0x50: str8100_led_on(led); break;
++	    case 0x60: str8100_led_off(led); break;
++	    case 0x20: str8100_led_toggle(led); break;
++	    case 0x30: str8100_led_all_off(); break;
++	    case 0x40: str8100_led_all_on(); break;
++	    default: str8100_led_all_off();
++	}
++
++       
++        return -EINVAL;
++}
++
++module_init(ledmod_start);
++module_exit(ledmod_end);
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/resetbutton.c linux-2.6.36-snake//arch/arm/mach-str8100/resetbutton.c
+--- linux-2.6.36//arch/arm/mach-str8100/resetbutton.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/resetbutton.c	2011-08-18 18:32:20.049807078 +0200
+@@ -0,0 +1,182 @@
++/******************************************************************************
++ *  button_wlx652.c: Monitoring of reset button WLX 652 board.
++ *
++ *  If the reset is pressed on module startup, and keep pressed for 6 seconds,
++ *  this module will restore Snake Os default config
++ *  If the button is released before, the module loads and wait for a button 
++ *  push, and reboot the NAS
++ * 
++ *  It create an interupt for the button that is connected to the following pin:
++ *     GPIOA[13] = Reset Button
++ *
++ *  Created by Douglas Gazineu
++ * ******************************************************************************
++ *
++ *  Copyright (c) 2008 Cavium Networks 
++ * 
++ *  This file is free software; you can redistribute it and/or modify 
++ *  it under the terms of the GNU General Public License, Version 2, as 
++ *  published by the Free Software Foundation. 
++ *
++ *  This file is distributed in the hope that it will be useful, 
++ *  but AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty of 
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or 
++ *  NONINFRINGEMENT.  See the GNU General Public License for more details. 
++ *
++ *  You should have received a copy of the GNU General Public License 
++ *  along with this file; if not, write to the Free Software 
++ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA or 
++ *  visit http://www.gnu.org/licenses/. 
++ *
++ *  This file may also be available under a different license from Cavium. 
++ *  Contact Cavium Networks for more information
++ *
++ ******************************************************************************/
++
++#include <linux/init.h>
++#include <linux/module.h>
++MODULE_LICENSE("Dual BSD/GPL");
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/miscdevice.h>
++#include <linux/watchdog.h>
++#include <linux/reboot.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/smp_lock.h>
++#include <linux/delay.h>
++#include <linux/sched.h>
++
++#include <asm/irq.h>
++#include <asm/uaccess.h>
++#include <asm/hardware.h>
++#include <asm/mach-types.h>
++
++#include <asm/arch/star_powermgt.h>
++#include <asm/arch/star_intc.h>
++#include <asm/arch/star_misc.h>
++#include <asm/arch/star_gpio.h>
++
++#define	RESET_BUTTON GPIO_13_MASK
++
++//#include <drivers/star/str8100/str8100_led.h>
++// extern void str8100_led_all_on(void);
++// extern void str8100_led_all_off(void);
++// extern void str8100_led_on(unsigned int led_index);
++// extern void str8100_led_off(unsigned int led_index);
++// extern void str8100_led_toggle(unsigned int led_index);
++// extern void str8100_led_init(void);
++
++extern void str8100_set_interrupt_trigger(unsigned int, unsigned int, unsigned int, unsigned int);
++static struct work_struct reboot_work;
++
++static void do_reboot(struct work_struct *work)
++{
++	char* argv[2];
++	char* env[1];
++	u32 retval;
++
++	argv[0]="/sbin/reboot";
++	argv[1]=NULL;
++	env[0]=NULL;
++
++	retval=call_usermodehelper(argv[0],argv,env,0);
++	printk("Rebooting...(retval=%d(0x%x)\n",retval,retval);
++	msleep(5000);
++}
++
++static irqreturn_t str8100_gpio_irq_handler(int this_irq, void *dev_id)
++{
++    unsigned int volatile status;
++
++    HAL_INTC_DISABLE_INTERRUPT_SOURCE(INTC_GPIO_EXTERNAL_INT_BIT_INDEX);
++    HAL_GPIOA_READ_INTERRUPT_MASKED_STATUS(status);
++
++	schedule_work(&reboot_work);
++
++	HAL_GPIOA_CLEAR_INTERRUPT(status);
++
++	HAL_INTC_CLEAR_EDGE_TRIGGER_INTERRUPT(INTC_GPIO_EXTERNAL_INT_BIT_INDEX);
++	HAL_INTC_ENABLE_INTERRUPT_SOURCE(INTC_GPIO_EXTERNAL_INT_BIT_INDEX);
++
++    return IRQ_HANDLED;
++}
++
++static int __init reset_handler(void){
++	int ret;
++	__u32 data;
++	int cnt = 0;
++
++	char* argv[3];
++	char* env[2];
++	u32 retval;
++
++	argv[0]="/usr/share/snake/config";
++	argv[1]="setdefault";
++	argv[2]=NULL;
++	env[0]="PATH=/sbin:/usr/sbin:/bin:/usr/bin";
++	env[1]=NULL;
++
++    HAL_PWRMGT_ENABLE_GPIO_CLOCK();
++
++    PWRMGT_SOFTWARE_RESET_CONTROL_REG |=  (0x1 << PWRMGT_GPIO_SOFTWARE_RESET_BIT_INDEX);
++
++	printk("Reset config: ");
++
++	HAL_GPIOA_SET_DIRECTION_INPUT(RESET_BUTTON);
++	HAL_GPIOA_ENABLE_INTERRUPT(RESET_BUTTON);
++	HAL_GPIOA_DISABLE_INTERRUPT_MASK(RESET_BUTTON);
++    HAL_GPIOA_SET_INTERRUPT_LEVEL_TRIGGER_MODE(RESET_BUTTON);
++	HAL_GPIOA_SET_INTERRUPT_LOW_LEVEL_TRIGGER_MODE(RESET_BUTTON);
++
++	while(cnt<6){
++		HAL_GPIOA_READ_DATA_IN_STATUS(data);
++
++		if ( ! (data & RESET_BUTTON) ){
++			printk(".");
++			if ( cnt == 5 ){
++				printk(" YES\nRestoring default SNAKE OS config...\n");
++				retval=call_usermodehelper(argv[0],argv,env,0);
++				msleep(10000);
++			}
++			msleep(1000);
++		}
++		else {
++			cnt = 10;
++			printk("NO\n");
++		}
++		cnt++;
++	}
++
++
++	HAL_GPIOA_CLEAR_INTERRUPT(RESET_BUTTON);
++	HAL_GPIOA_SET_DIRECTION_INPUT(RESET_BUTTON);
++	HAL_GPIOA_ENABLE_INTERRUPT(RESET_BUTTON);
++	HAL_GPIOA_DISABLE_INTERRUPT_MASK(RESET_BUTTON);
++    HAL_GPIOA_SET_INTERRUPT_LEVEL_TRIGGER_MODE(RESET_BUTTON);
++	HAL_GPIOA_SET_INTERRUPT_LOW_LEVEL_TRIGGER_MODE(RESET_BUTTON);
++
++	INIT_WORK(&reboot_work,do_reboot);
++
++
++    str8100_set_interrupt_trigger (INTC_GPIO_EXTERNAL_INT_BIT_INDEX,INTC_IRQ_INTERRUPT,INTC_LEVEL_TRIGGER,INTC_ACTIVE_HIGH);
++
++	if ((ret=request_irq(INTC_GPIO_EXTERNAL_INT_BIT_INDEX, str8100_gpio_irq_handler, 0, "testing", NULL))){
++		printk("%s: request_irq failed(ret=0x%x)(-EBUSY=0x%x)\n",__FUNCTION__,ret,-EBUSY);
++		return -EBUSY;
++	}
++
++	return 0;
++}
++
++static void __exit reset_handler_exit(void){
++	printk("%s: \n",__FUNCTION__);
++	free_irq(INTC_GPIO_EXTERNAL_INT_BIT_INDEX,NULL);
++}
++
++module_init(reset_handler);
++module_exit(reset_handler_exit);
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_rtc.c linux-2.6.36-snake//arch/arm/mach-str8100/str8100_rtc.c
+--- linux-2.6.36//arch/arm/mach-str8100/str8100_rtc.c	2010-11-09 23:47:46.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/str8100_rtc.c	2011-08-17 22:07:08.425960950 +0200
+@@ -21,7 +21,7 @@
+  *
+  ******************************************************************************/
+ 
+-#include <linux/config.h>
++//#include <linux/config.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+@@ -35,6 +35,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/rtc.h>
+ #include <linux/interrupt.h>
++#include <linux/sched.h>
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+@@ -58,6 +59,9 @@ static int rtc_busy = 0;
+ static unsigned long epoch = 1900;
+ static unsigned int  rtc_interrupt_flag = 0;
+ static time_t local_rtc_offset, set_rtc_offset, current_rtc_time;
++
++
++static DEFINE_MUTEX(str_rtc_mutex);
+ static DECLARE_WAIT_QUEUE_HEAD(str8100_rtc_wait);
+ 
+ 
+@@ -262,7 +266,7 @@ static void get_rtc_alm_time(struct rtc_
+     spin_unlock_irq(&rtc_lock);
+ }
+ 
+-static int rtc_ioctl(struct inode *inode, struct file *file, unsigned int cmd,unsigned long arg)
++static long rtc_ioctl(struct file *file, unsigned int cmd,unsigned long arg)
+ {
+     struct rtc_time wtime; 
+ 
+@@ -307,6 +311,17 @@ static int rtc_ioctl(struct inode *inode
+     return copy_to_user((void *)arg, &wtime, sizeof wtime) ? -EFAULT : 0;
+ }
+ 
++static long rtc_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	int ret;
++
++	mutex_lock(&str_rtc_mutex);
++	ret = rtc_ioctl(file, cmd, arg);
++	mutex_unlock(&str_rtc_mutex);
++
++	return ret;
++}
++
+ // Eileen , for linux kernel 2.6.24 , 20080417
+ // old : static irqreturn_t rtc_fire(int irq, void *dev_id, struct pt_regs *regs)
+ static irqreturn_t rtc_fire(int irq, void *dev_id)
+@@ -407,7 +422,7 @@ static int rtc_release(struct inode *ino
+ static struct file_operations rtc_fops = {
+     owner:	THIS_MODULE,
+     llseek:	rtc_lseek,
+-    ioctl:	rtc_ioctl,
++    unlocked_ioctl:	rtc_unlocked_ioctl,
+     open:	rtc_open,
+     read:       rtc_read,
+     release:	rtc_release
+diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_setup.c linux-2.6.36-snake//arch/arm/mach-str8100/str8100_setup.c
+--- linux-2.6.36//arch/arm/mach-str8100/str8100_setup.c	2010-11-10 00:12:45.000000000 +0100
++++ linux-2.6.36-snake//arch/arm/mach-str8100/str8100_setup.c	2011-08-18 00:48:24.329263995 +0200
+@@ -357,28 +357,38 @@ static struct platform_device str8100_us
+ 
+ #ifdef CONFIG_SPI_STR8100
+ #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
++static struct str8100_spi_dev_attr str8100_spi_flash_attr = {
++	.spi_serial_mode = STR8100_SPI_SERIAL_MODE_GENERAL,
++};
++
+ static struct mtd_partition str8100_spi_flash_partitions[] = {
+ 	{
+-		.name =		"all",
+-		.offset =	CONFIG_ARMBOOT_OFFSET,
+-		.size =		0x800000-CONFIG_ARMBOOT_OFFSET,
+-	},{
+-		.name =		"ARMBOOT",
+-		.offset =	CONFIG_ARMBOOT_OFFSET,
+-		.size =		CONFIG_KERNEL_OFFSET-CONFIG_ARMBOOT_OFFSET,
++		.name =		"BOOT",
++		.offset =	CONFIG_BOOT_OFFSET,
++		.size =		CONFIG_CFG_OFFSET-CONFIG_BOOT_OFFSET,
++        },{
++                .name =         "CFG",
++                .offset =       CONFIG_CFG_OFFSET,
++                .size =         CONFIG_KERNEL_OFFSET-CONFIG_CFG_OFFSET,
++
+ 	},{
+-		.name =		"Linux Kernel",
++		.name =		"KERNEL",
+ 		.offset =	CONFIG_KERNEL_OFFSET,
+-		.size =		CONFIG_ROOTFS_OFFSET-CONFIG_KERNEL_OFFSET,
++		.size =		CONFIG_INITRD_OFFSET-CONFIG_KERNEL_OFFSET,
+ 	},{
+-		.name =		"MTD Disk1",
+-		.offset =	CONFIG_ROOTFS_OFFSET,
+-		.size =		CONFIG_CFG_OFFSET-CONFIG_ROOTFS_OFFSET,
++		.name =		"INITRD",
++		.offset =	CONFIG_INITRD_OFFSET,
++		.size =		0x3f0000-CONFIG_INITRD_OFFSET,
+ 	},{
+-		.name =		"MTD Disk2",
+-		.offset =	CONFIG_CFG_OFFSET,
+-		.size =		0x800000-CONFIG_CFG_OFFSET,
+-	}
++		.name =		"WEB",
++		.offset =	CONFIG_WEB_OFFSET,
++		.size =		0x3f0000-CONFIG_WEB_OFFSET,
++        },{
++                .name =         "ALL",
++                .offset =       CONFIG_BOOT_OFFSET,
++                .size =         0x3f0000-CONFIG_BOOT_OFFSET,
++        }
++
+ };
+ 
+ static struct flash_platform_data str8100_spi_flash_data = {
+@@ -400,7 +410,8 @@ static struct spi_board_info str8100_spi
+ 		.chip_select	= 0,
+ 		.max_speed_hz	= 25 * 1000 * 1000,
+ 		.bus_num	= 1,
+-		.platform_data = &str8100_spi_flash_data,
++		.platform_data  = &str8100_spi_flash_data,
++		.controller_data = &str8100_spi_flash_attr,
+         },
+ 
+ #if defined(CONFIG_LE88221_CONTROL)
+diff -upNr linux-2.6.36//drivers/spi/spi_str8100.c linux-2.6.36-snake//drivers/spi/spi_str8100.c
+--- linux-2.6.36//drivers/spi/spi_str8100.c	2010-11-09 23:47:46.000000000 +0100
++++ linux-2.6.36-snake//drivers/spi/spi_str8100.c	2011-08-17 22:22:26.178447613 +0200
+@@ -169,6 +169,11 @@ static int str8100_spi_setup(struct spi_
+ 	return 0;
+ }
+ 
++static int str8100_spi_setup_transfer(struct spi_device *spi, struct spi_transfer *t)
++{
++	return 0;
++}
++
+ static int str8100_spi_txrx(struct spi_device *spi, struct spi_transfer *t)
+ {
+ 	struct str8100_spi *hw = to_hw(spi);
+@@ -286,6 +291,7 @@ static int __init str8100_spi_probe(stru
+ 	hw->bitbang.chipselect     = str8100_spi_chipselect;
+ 	hw->bitbang.txrx_bufs      = str8100_spi_txrx;
+ 	hw->bitbang.master->setup  = str8100_spi_setup;
++	hw->bitbang.setup_transfer = str8100_spi_setup_transfer;
+ 
+ 	dev_dbg(hw->dev, "bitbang at %p\n", &hw->bitbang);
+ 
+diff -upNr linux-2.6.36//drivers/usb/host/ohci-hcd.c linux-2.6.36-snake//drivers/usb/host/ohci-hcd.c
+--- linux-2.6.36//drivers/usb/host/ohci-hcd.c	2010-10-20 22:30:22.000000000 +0200
++++ linux-2.6.36-snake//drivers/usb/host/ohci-hcd.c	2011-08-15 07:35:48.976527650 +0200
+@@ -667,6 +667,11 @@ retry:
+ 
+ 	periodic_reinit (ohci);
+ 
++#if defined(CONFIG_ARCH_STR9100) || defined(CONFIG_ARCH_STR8100) || defined(CONFIG_ARCH_CETUSPLUS)
++	ohci_writel (ohci, ohci->fminterval, &ohci->regs->fminterval);
++#endif         
++
++
+ 	/* some OHCI implementations are finicky about how they init.
+ 	 * bogus values here mean not even enumeration could work.
+ 	 */
+@@ -1100,6 +1105,12 @@ MODULE_LICENSE ("GPL");
+ #define PLATFORM_DRIVER	ohci_hcd_jz4740_driver
+ #endif
+ 
++
++#ifdef CONFIG_ARCH_STR8100
++#include "ohci-str8100.c"
++#define PLATFORM_DRIVER str8100_ohci_hcd_driver
++#endif
++
+ #if	!defined(PCI_DRIVER) &&		\
+ 	!defined(PLATFORM_DRIVER) &&	\
+ 	!defined(OMAP1_PLATFORM_DRIVER) &&	\
+diff -upNr linux-2.6.36//drivers/usb/host/ohci-str8100.c linux-2.6.36-snake//drivers/usb/host/ohci-str8100.c
+--- linux-2.6.36//drivers/usb/host/ohci-str8100.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.36-snake//drivers/usb/host/ohci-str8100.c	2011-08-15 07:41:45.850272311 +0200
+@@ -0,0 +1,243 @@
++/******************************************************************************
++ *
++ *  Copyright (c) 2008 Cavium Networks 
++ * 
++ *  This file is free software; you can redistribute it and/or modify 
++ *  it under the terms of the GNU General Public License, Version 2, as 
++ *  published by the Free Software Foundation. 
++ *
++ *  This file is distributed in the hope that it will be useful, 
++ *  but AS-IS and WITHOUT ANY WARRANTY; without even the implied warranty of 
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE, TITLE, or 
++ *  NONINFRINGEMENT.  See the GNU General Public License for more details. 
++ *
++ *  You should have received a copy of the GNU General Public License 
++ *  along with this file; if not, write to the Free Software 
++ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA or 
++ *  visit http://www.gnu.org/licenses/. 
++ *
++ *  This file may also be available under a different license from Cavium. 
++ *  Contact Cavium Networks for more information
++ *
++ ******************************************************************************/
++
++
++//#include <linux/signal.h>	/* SA_INTERRUPT */
++#include <linux/jiffies.h>
++#include <linux/platform_device.h>
++
++#include <asm/arch/hardware.h>
++#include <asm/mach-types.h>
++
++void str8100_usb_hcd_remove(struct usb_hcd *, struct platform_device *);
++
++static void str8100_usb11_config_reg_init(void)
++{
++#if 0
++	__asm__ volatile (
++		"mov	r1, #0			\n\t"
++		"mcr	p15, 0, r1, c7, c5, 0	\n\t"
++		"mov	r1, #0			\n\t"
++		"mcr	p15, 0, r1, c7, c14, 0	\n\t"
++        );
++#endif
++	__raw_writel(0x146, SYSVA_USB11_CONFIG_BASE_ADDR + 0x04);
++	__raw_writel(0x200, SYSVA_USB11_CONFIG_BASE_ADDR + 0x44);
++	mdelay(100);
++}
++
++int str8100_usb_hcd_probe(const struct hc_driver *driver, struct platform_device *pdev)
++{
++	int retval;
++	struct usb_hcd *hcd = 0;
++	struct ohci_hcd *ohci;
++
++
++	str8100_usb11_config_reg_init();
++	hcd = usb_create_hcd(driver, &pdev->dev, dev_name(&pdev->dev));
++	if (!hcd) {
++		retval = -ENOMEM;
++		return retval;
++	}
++	hcd->regs = (unsigned int *)SYSVA_USB11_OPERATION_BASE_ADDR;
++	hcd->rsrc_start = SYSPA_USB11_OPERATION_BASE_ADDR;
++	hcd->rsrc_len = 4096;
++	ohci = hcd_to_ohci(hcd);
++	ohci_hcd_init(ohci);
++	retval = usb_add_hcd(hcd, INTC_USB11_BIT_INDEX, IRQF_SHARED);
++	if (retval == 0) {
++		return retval;
++	}
++	printk("str8100 ohci init fail, %d\n", retval);
++	usb_put_hcd(hcd);
++	return retval;
++}
++
++void str8100_usb_hcd_remove(struct usb_hcd *hcd, struct platform_device *pdev)
++{
++	usb_remove_hcd(hcd);
++	usb_put_hcd(hcd);
++}
++
++static int str8100_ohci_start(struct usb_hcd *hcd)
++{
++	struct ohci_hcd	*ohci = hcd_to_ohci(hcd);
++	int ret;
++
++	//ohci->regs = hcd->regs;
++	//ohci->fminterval = 0x27782edf;
++	if ((ret = ohci_init(ohci)) < 0)
++		return ret;
++
++	if ((ret = ohci_run(ohci)) < 0) {
++		err("can't start %s", ohci_to_hcd(ohci)->self.bus_name);
++		ohci_stop(hcd);
++		return ret;
++	}
++
++	return 0;
++}
++
++/*-------------------------------------------------------------------------*/
++
++static const struct hc_driver str8100_ohci_hc_driver = {
++	.description =		hcd_name,
++	.product_desc =		"str8100-ohci",
++	.hcd_priv_size =	sizeof(struct ohci_hcd),
++
++	/*
++	 * generic hardware linkage
++	 */
++	.irq =			ohci_irq,
++	.flags =		HCD_USB11 | HCD_MEMORY,
++
++	/*
++	 * basic lifecycle operations
++	 */
++	.start =		str8100_ohci_start,
++	.stop =			ohci_stop,
++
++	/*
++	 * managing i/o requests and associated device resources
++	 */
++	.urb_enqueue =		ohci_urb_enqueue,
++	.urb_dequeue =		ohci_urb_dequeue,
++	.endpoint_disable =	ohci_endpoint_disable,
++
++	/*
++	 * scheduling support
++	 */
++	.get_frame_number =	ohci_get_frame,
++
++	/*
++	 * root hub support
++	 */
++	.hub_status_data =	ohci_hub_status_data,
++	.hub_control =		ohci_hub_control,
++#ifdef	CONFIG_PM
++	.bus_suspend =		ohci_bus_suspend,
++	.bus_resume =		ohci_bus_resume,
++#endif
++	.start_port_reset =	ohci_start_port_reset,
++};
++
++/*-------------------------------------------------------------------------*/
++
++static int str8100_ohci_hcd_drv_probe(struct platform_device *pdev)
++{
++	if (usb_disabled())
++		return -ENODEV;
++
++	return str8100_usb_hcd_probe(&str8100_ohci_hc_driver, pdev);
++}
++
++static int str8100_ohci_hcd_drv_remove(struct platform_device *pdev)
++{
++	struct usb_hcd *hcd = platform_get_drvdata(pdev);
++	struct ohci_hcd *ohci = hcd_to_ohci(hcd);
++
++	str8100_usb_hcd_remove(hcd, pdev);
++	if (ohci->transceiver) {
++		(void) otg_set_host(ohci->transceiver, 0);
++		put_device(ohci->transceiver->dev);
++	}
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++/*-------------------------------------------------------------------------*/
++
++#ifdef	CONFIG_PM
++
++//mkl070226: the functionality of suspend/resume is not complete
++static int str8100_ohci_suspend(struct platform_device *pdev, pm_message_t message)
++{
++#if 0
++	struct ohci_hcd	*ohci = hcd_to_ohci(platform_get_drvdata(pdev));
++
++	if (time_before(jiffies, ohci->next_statechange))
++		msleep(5);
++	ohci->next_statechange = jiffies;
++
++	str8100_ohci_clock_power(0);
++	ohci_to_hcd(ohci)->state = HC_STATE_SUSPENDED;
++	pdev->power.power_state = PMSG_SUSPEND;
++#else
++	printk("%s: not implemented, just pass it\n",__FUNCTION__);
++#endif
++	return 0;
++}
++
++static int str8100_ohci_resume(struct platform_device *pdev)
++{
++#if 0
++	struct ohci_hcd	*ohci = hcd_to_ohci(platform_get_drvdata(pdev));
++
++	if (time_before(jiffies, ohci->next_statechange))
++		msleep(5);
++	ohci->next_statechange = jiffies;
++	pdev->power.power_state = PMSG_ON;
++	usb_hcd_resume_root_hub(dev_get_drvdata(pdev));
++#else
++	printk("%s: not implemented, just pass it\n",__FUNCTION__);
++#endif
++	return 0;
++}
++
++#endif
++
++/*-------------------------------------------------------------------------*/
++
++/*
++ * Driver definition to register with the OMAP bus
++ */
++static struct platform_driver str8100_ohci_hcd_driver = {
++	.probe		= str8100_ohci_hcd_drv_probe,
++	.remove		= str8100_ohci_hcd_drv_remove,
++#ifdef	CONFIG_PM
++//mkl070226: the functionality of suspend/resume is not complete
++	.suspend	= str8100_ohci_suspend,
++	.resume		= str8100_ohci_resume,
++#endif
++	.driver		= {
++		.owner	= THIS_MODULE,
++		.name	= "str8100-ohci",
++	},
++};
++/*
++static int __init str8100_ohci_hcd_init(void)
++{
++	printk("%s: " DRIVER_INFO " (STR8100)\n", hcd_name);
++	pr_debug("%s: block sizes: ed %Zd td %Zd\n", hcd_name, sizeof(struct ed), sizeof(struct td));
++	return platform_driver_register(&str8100_ohci_hcd_driver);
++}
++module_init(str8100_ohci_hcd_init);
++
++static void __exit str8100_ohci_hcd_cleanup(void)
++{
++	platform_driver_unregister(&str8100_ohci_hcd_driver);
++}
++module_exit(str8100_ohci_hcd_cleanup);
++
++*/
+diff -upNr linux-2.6.36//include/asm-generic/cmpxchg-local.h linux-2.6.36-snake//include/asm-generic/cmpxchg-local.h
+--- linux-2.6.36//include/asm-generic/cmpxchg-local.h	2010-10-20 22:30:22.000000000 +0200
++++ linux-2.6.36-snake//include/asm-generic/cmpxchg-local.h	2011-08-17 21:39:11.489762820 +0200
+@@ -19,28 +19,34 @@ static inline unsigned long __cmpxchg_lo
+ 	 */
+ 	if (size == 8 && sizeof(unsigned long) != 8)
+ 		wrong_size_cmpxchg(ptr);
+-
++		
+ 	local_irq_save(flags);
+-	switch (size) {
+-	case 1: prev = *(u8 *)ptr;
++
++
++	if (size == 1) {
++		prev = *(u8 *)ptr;
+ 		if (prev == old)
+ 			*(u8 *)ptr = (u8)new;
+-		break;
+-	case 2: prev = *(u16 *)ptr;
++	}
++	else if (size == 2) {
++		prev = *(u16 *)ptr;
+ 		if (prev == old)
+ 			*(u16 *)ptr = (u16)new;
+-		break;
+-	case 4: prev = *(u32 *)ptr;
++	}
++	else if (size == 4) {
++		prev = *(u32 *)ptr;
+ 		if (prev == old)
+ 			*(u32 *)ptr = (u32)new;
+-		break;
+-	case 8: prev = *(u64 *)ptr;
++	}
++	else if (size == 8) {
++		prev = *(u64 *)ptr;
+ 		if (prev == old)
+ 			*(u64 *)ptr = (u64)new;
+-		break;
+-	default:
++	}
++	else {
+ 		wrong_size_cmpxchg(ptr);
+ 	}
++
+ 	local_irq_restore(flags);
+ 	return prev;
+ }
+diff -upNr linux-2.6.36//kernel/sysctl_binary.c linux-2.6.36-snake//kernel/sysctl_binary.c
+--- linux-2.6.36//kernel/sysctl_binary.c	2010-11-09 23:47:46.000000000 +0100
++++ linux-2.6.36-snake//kernel/sysctl_binary.c	2011-08-17 23:15:17.369950760 +0200
+@@ -829,9 +829,9 @@ static const struct bin_table bin_ipmi_t
+ };
+ 
+ #ifdef CONFIG_ARCH_STR8100
+-static struct trans_ctl_table trans_i2c_table[] = {
+-	{DEV_I2C_CLOCK, "str8100_clock"},
+-	{DEV_I2C_DEBUG, "str8100_debug"}
++static struct bin_table trans_i2c_table[] = {
++	{CTL_INT, DEV_I2C_CLOCK, "str8100_clock"},
++	{CTL_INT, DEV_I2C_DEBUG, "str8100_debug"}
+ };
+ #endif
+ 
+@@ -865,7 +865,7 @@ static const struct bin_table bin_dev_ta
+ 	{ CTL_DIR,	DEV_SCSI,	"scsi",		bin_scsi_table },
+ 	{ CTL_DIR,	DEV_IPMI,	"ipmi",		bin_ipmi_table },
+ #ifdef CONFIG_ARCH_STR8100
+-	{ DEV_I2C, "i2c",	trans_i2c_table },
++	{ CTL_DIR, DEV_I2C, "i2c",	trans_i2c_table },
+ #endif	
+ 	{}
+ };
+@@ -1203,7 +1203,7 @@ static ssize_t bin_dn_node_address(struc
+ 
+ 		buf[result] = '\0';
+ 
+-		/* Convert the decnet addresss to binary */
++		/* Convert the decnet address to binary */
+ 		result = -EIO;
+ 		nodep = strchr(buf, '.') + 1;
+ 		if (!nodep)
