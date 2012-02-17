@@ -1,69 +1,88 @@
 diff -upNr linux-2.6.36//arch/arm/mach-str8100/Kconfig linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig
 --- linux-2.6.36//arch/arm/mach-str8100/Kconfig	2010-11-09 23:47:46.000000000 +0100
 +++ linux-2.6.36-snake//arch/arm/mach-str8100/Kconfig	2011-08-18 00:49:05.525465427 +0200
-@@ -103,34 +103,54 @@ config STR8100_GPIO_GENERIC_INTERFACE
+@@ -103,61 +103,34 @@
  	depends on STR8100_GPIO	
  	select GENERIC_GPIO
  
-+config STR8100_WLX652_LEDS
-+        tristate "Star 8132 - WLX652 - Led Module"
-+        default n
-+        help
-+          enable led handling
-+
-+config STR8100_WLX652_BUTTON
-+        tristate "Star 8132 - WLX652 - Button Module"
-+        default n
-+        help
-+          enable button operation
-+
+-config STR8100_WLX652_LEDS
+-        tristate "Star 8132 - WLX652 - Led Module"
+-        default n
+-        help
+-          enable led handling
+-
+-config STR8100_WLX652_BUTTON
+-        tristate "Star 8132 - WLX652 - Button Module"
+-        default n
+-        help
+-          enable button operation
+-
  comment "Flash MAP"
  config STR8100_FLASH_PART
  	bool "STR8100 flash partition setting"
  
  if STR8100_FLASH_PART
--	config ARMBOOT_OFFSET
--	hex "ARMBOOT OFFSET"
-+	config BOOT_OFFSET
-+	hex "BOOT OFFSET"
- 	default 0x0
- 	help
- 	  The armboot start offset in flash layout
- 
-+        config CFG_OFFSET
-+        hex "CFG OFFSET"
-+        default 0x40000
-+        help
-+          The cfg start offset in flash layout
-+
-+
- 	config KERNEL_OFFSET
- 	hex "KERNEL OFFSET"
--	default 0x40000
-+	default 0x60000
- 	help
- 	  The kernel start offset in flash layout
- 
--	config ROOTFS_OFFSET
--	hex "ROOTFS OFFSET"
--	default 0x140000
-+	config INITRD_OFFSET
-+	hex "INITRD OFFSET"
-+	default 0x150000
- 	help
--	  The rootfs start offset in flash layout
-+	  The initrd start offset in flash layout
- 
--	config CFG_OFFSET
--	hex "CFG OFFSET"
--	default 0x7f0000
-+	config WEB_OFFSET
-+	hex "WEB OFFSET"
+-	config FLASH_SIZE 
+-	hex "FLASH SIZE" 
+-	default 0x1000000 
+-	help 
+-	  The armboot start offset in flash layout 
+-	
+-	config ARMBOOT_OFFSET 
+-	hex "ARMBOOT OFFSET" 
+-	default 0x0 
+-	help 
+-	  The armboot start offset in flash layout 
+-	
+-	config KERNEL_OFFSET 
+-	hex "KERNEL OFFSET" 
+-	default 0x40000 
+-	default 0x20000 
+-	help 
+-	  The kernel start offset in flash layout 
+-	
+-	config ROOTFS_OFFSET 
+-	hex "ROOTFS OFFSET" 
+-	default 0x140000 
+-	default 0x1400000 
+-	help 
+-	  The rootfs start offset in flash layout 
+-	
+-	config CFG_OFFSET 
+-	hex "CFG OFFSET" 
+-	default 0x7f0000 
+-	default 0xEA0000 
+-	help 
+-	  The cfg start offset in flash layout 
+-	
+-	config UBOOT_ENV_OFFSET 
+-	hex "UBOOT ENV OFFSET" 
+-	default 0xF80000 
+-	help 
+-	  The cfg 
++	config ARMBOOT_OFFSET
++	hex "ARMBOOT OFFSET"
 +	default 0x0
- 	help
--	  The cfg start offset in flash layout
-+	  The old web start offset in flash layout
++	help
++	  The armboot start offset in flash layout
 +
++	config KERNEL_OFFSET
++	hex "KERNEL OFFSET"
++	default 0x40000
++	help
++	  The kernel start offset in flash layout
++
++	config ROOTFS_OFFSET
++	hex "ROOTFS OFFSET"
++	default 0x140000
++	help
++	  The rootfs start offset in flash layout
++
++	config CFG_OFFSET
++	hex "CFG OFFSET"
++	default 0x7f0000
++	help
++	  The cfg start offset in flash layout
  endif
  
  
@@ -718,7 +737,7 @@ diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_rtc.c linux-2.6.36-snake/
   ******************************************************************************/
  
 -#include <linux/config.h>
-+//#include <linux/config.h>
++/*#include <linux/config.h>*/
  #include <linux/module.h>
  #include <linux/kernel.h>
  #include <linux/types.h>
@@ -779,7 +798,7 @@ diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_rtc.c linux-2.6.36-snake/
 diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_setup.c linux-2.6.36-snake//arch/arm/mach-str8100/str8100_setup.c
 --- linux-2.6.36//arch/arm/mach-str8100/str8100_setup.c	2010-11-10 00:12:45.000000000 +0100
 +++ linux-2.6.36-snake//arch/arm/mach-str8100/str8100_setup.c	2011-08-18 00:48:24.329263995 +0200
-@@ -357,28 +357,38 @@ static struct platform_device str8100_us
+@@ -357,35 +357,44 @@
  
  #ifdef CONFIG_SPI_STR8100
  #if defined(CONFIG_MTD_M25P80) || defined(CONFIG_MTD_M25P80_MODULE)
@@ -790,61 +809,55 @@ diff -upNr linux-2.6.36//arch/arm/mach-str8100/str8100_setup.c linux-2.6.36-snak
  static struct mtd_partition str8100_spi_flash_partitions[] = {
  	{
 -		.name =		"all",
--		.offset =	CONFIG_ARMBOOT_OFFSET,
++		.name =		"ALL",
+ 		.offset =	CONFIG_ARMBOOT_OFFSET,
 -		.size =		0x800000-CONFIG_ARMBOOT_OFFSET,
--	},{
--		.name =		"ARMBOOT",
--		.offset =	CONFIG_ARMBOOT_OFFSET,
--		.size =		CONFIG_KERNEL_OFFSET-CONFIG_ARMBOOT_OFFSET,
-+		.name =		"BOOT",
-+		.offset =	CONFIG_BOOT_OFFSET,
-+		.size =		CONFIG_CFG_OFFSET-CONFIG_BOOT_OFFSET,
-+        },{
-+                .name =         "CFG",
-+                .offset =       CONFIG_CFG_OFFSET,
-+                .size =         CONFIG_KERNEL_OFFSET-CONFIG_CFG_OFFSET,
-+
++		.size =		CONFIG_FLASH_SIZE-CONFIG_ARMBOOT_OFFSET,
+ 	},{
+ 		.name =		"ARMBOOT",
+ 		.offset =	CONFIG_ARMBOOT_OFFSET,
+ 		.size =		CONFIG_KERNEL_OFFSET-CONFIG_ARMBOOT_OFFSET,
  	},{
 -		.name =		"Linux Kernel",
-+		.name =		"KERNEL",
++		.name =		"Kernel",
  		.offset =	CONFIG_KERNEL_OFFSET,
--		.size =		CONFIG_ROOTFS_OFFSET-CONFIG_KERNEL_OFFSET,
-+		.size =		CONFIG_INITRD_OFFSET-CONFIG_KERNEL_OFFSET,
+ 		.size =		CONFIG_ROOTFS_OFFSET-CONFIG_KERNEL_OFFSET,
  	},{
 -		.name =		"MTD Disk1",
--		.offset =	CONFIG_ROOTFS_OFFSET,
--		.size =		CONFIG_CFG_OFFSET-CONFIG_ROOTFS_OFFSET,
-+		.name =		"INITRD",
-+		.offset =	CONFIG_INITRD_OFFSET,
-+		.size =		0x3f0000-CONFIG_INITRD_OFFSET,
++		.name =		"RootFS",
+ 		.offset =	CONFIG_ROOTFS_OFFSET,
+ 		.size =		CONFIG_CFG_OFFSET-CONFIG_ROOTFS_OFFSET,
  	},{
 -		.name =		"MTD Disk2",
--		.offset =	CONFIG_CFG_OFFSET,
++		.name =		"Configs",
+ 		.offset =	CONFIG_CFG_OFFSET,
 -		.size =		0x800000-CONFIG_CFG_OFFSET,
--	}
-+		.name =		"WEB",
-+		.offset =	CONFIG_WEB_OFFSET,
-+		.size =		0x3f0000-CONFIG_WEB_OFFSET,
-+        },{
-+                .name =         "ALL",
-+                .offset =       CONFIG_BOOT_OFFSET,
-+                .size =         0x3f0000-CONFIG_BOOT_OFFSET,
-+        }
++		.size =		CONFIG_UBOOT_ENV_OFFSET-CONFIG_CFG_OFFSET,
++	},{
++		.name =		"UBootEnv",
++		.offset =	CONFIG_UBOOT_ENV_OFFSET,
++		.size =		CONFIG_FLASH_SIZE-CONFIG_UBOOT_ENV_OFFSET,
+ 	}
 +
  };
  
  static struct flash_platform_data str8100_spi_flash_data = {
-@@ -400,7 +410,8 @@ static struct spi_board_info str8100_spi
- 		.chip_select	= 0,
+ 	.name = "m25p80",
+ 	.parts = str8100_spi_flash_partitions,
+ 	.nr_parts = ARRAY_SIZE(str8100_spi_flash_partitions),
+-	.type = "m25p64",
++	.type = "m25p128",
+ };
+ 
+ #if defined(CONFIG_LE88221_CONTROL)
+@@ -401,6 +410,7 @@
  		.max_speed_hz	= 25 * 1000 * 1000,
  		.bus_num	= 1,
--		.platform_data = &str8100_spi_flash_data,
-+		.platform_data  = &str8100_spi_flash_data,
+ 		.platform_data = &str8100_spi_flash_data,
 +		.controller_data = &str8100_spi_flash_attr,
          },
  
- #if defined(CONFIG_LE88221_CONTROL)
-diff -upNr linux-2.6.36//drivers/spi/spi_str8100.c linux-2.6.36-snake//drivers/spi/spi_str8100.c
+ #if defined(CONFIG_LE88221_CONTROL)diff -upNr linux-2.6.36//drivers/spi/spi_str8100.c linux-2.6.36-snake//drivers/spi/spi_str8100.c
 --- linux-2.6.36//drivers/spi/spi_str8100.c	2010-11-09 23:47:46.000000000 +0100
 +++ linux-2.6.36-snake//drivers/spi/spi_str8100.c	2011-08-17 22:22:26.178447613 +0200
 @@ -169,6 +169,11 @@ static int str8100_spi_setup(struct spi_
