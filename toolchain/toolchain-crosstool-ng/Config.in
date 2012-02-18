@@ -50,6 +50,14 @@ if BR2_TOOLCHAIN_CTNG_uClibc
 
 comment "Toolchain Options"
 
+config BR2_TOOLCHAIN_CTNG_uClibc_CONFIG
+	string "uClibc configuration file to use?"
+	default "toolchain/uClibc/uClibc-0.9.32.config"
+	help
+	  Some people may wish to use their own modified uClibc configuration
+	  file and will specify their config file location with this option.
+	  See also docs/README in this package.
+
 config BR2_TOOLCHAIN_CTNG_uClibc_LARGEFILE
 	bool "Enable large file (files > 2 GB) support"
 	select BR2_LARGEFILE

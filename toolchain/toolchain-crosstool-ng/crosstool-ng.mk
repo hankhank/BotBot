@@ -10,7 +10,7 @@
 
 CTNG_DIR := $(BUILD_DIR)/build-toolchain
 
-CTNG_UCLIBC_CONFIG_FILE := $(TOPDIR)/toolchain/toolchain-crosstool-ng/uClibc.config
+CTNG_UCLIBC_CONFIG_FILE := $(TOPDIR)/$(call qstrip,$(BR2_TOOLCHAIN_CTNG_uClibc_CONFIG))
 CTNG_CONFIG_FILE:=$(call qstrip,$(BR2_TOOLCHAIN_CTNG_CONFIG))
 
 # Hack! ct-ng is in fact a Makefile script. As such, it accepts all
