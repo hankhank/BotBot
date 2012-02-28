@@ -65,6 +65,8 @@ config BR2_arm720t
 	bool "arm720t"
 config BR2_arm920t
 	bool "arm920t"
+config BR2_arm922
+	bool "arm922"
 config BR2_arm922t
 	bool "arm922t"
 config BR2_arm926t
@@ -100,6 +102,7 @@ config BR2_ARM_TYPE
 	default ARM7TDMI	if BR2_arm7tdmi
 	default ARM720T		if BR2_arm720t
 	default ARM920T		if BR2_arm920t
+	default ARM922		if BR2_arm922
 	default ARM922T		if BR2_arm922t
 	default ARM926T		if BR2_arm926t
 	default ARM10T		if BR2_arm10t
@@ -667,6 +670,7 @@ config BR2_GCC_TARGET_ARCH
 	default armv3		if BR2_arm710
 	default armv4t		if BR2_arm720t
 	default armv4t		if BR2_arm920t
+	default armv4		if BR2_arm922
 	default armv4t		if BR2_arm922t
 	default armv5te		if BR2_arm926t
 	default armv5t		if BR2_arm10t

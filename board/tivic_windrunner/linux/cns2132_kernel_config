@@ -209,7 +209,7 @@ CONFIG_ALIGNMENT_TRAP=y
 #
 CONFIG_ZBOOT_ROM_TEXT=0x00100000
 CONFIG_ZBOOT_ROM_BSS=0x0
-CONFIG_CMDLINE="init=/bin/helloworld user_debug=31 root=/dev/mtdblock3 rw rootfstype=jffs2"
+CONFIG_CMDLINE="user_debug=31 root=/dev/mtdblock3 rw rootfstype=jffs2"
 # CONFIG_XIP_KERNEL is not set
 
 #

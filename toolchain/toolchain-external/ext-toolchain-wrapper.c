@@ -25,6 +25,8 @@ static char *predef_args[] = {
 #ifdef BR_ARCH
 	"-march=" BR_ARCH,
 #endif /* BR_ARCH */
+    "-Wl,--fix-v4bx",
+    "-Wa,--fix-v4bx",
 #ifdef BR_TUNE
 	"-mtune=" BR_TUNE,
 #endif /* BR_TUNE */
