@@ -1,0 +1,34 @@
+--- a/scripts/build/cc/gcc.sh	2012-03-02 07:27:01.395387863 +1100
++++ b/scripts/build/cc/gcc.sh	2012-03-02 07:27:26.508585146 +1100
+@@ -295,6 +295,9 @@
+     CC_FOR_BUILD="${CT_BUILD}-gcc"                  \
+     CFLAGS="${CT_CFLAGS_FOR_HOST}"                  \
+     LDFLAGS="${core_LDFLAGS[*]}"                    \
++    CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"         \
++    CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"       \
++    LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
+     "${CT_SRC_DIR}/gcc-${CT_CC_VERSION}/configure"  \
+         --build=${CT_BUILD}                         \
+
+--- a/scripts/build/libc/uClibc.sh.old	2012-03-02 19:35:02.278485706 +1100
++++ b/scripts/build/libc/uClibc.sh	2012-03-02 19:58:33.657506275 +1100
+@@ -190,6 +190,9 @@
+          CROSS=${CT_TARGET}-                                \
+          PREFIX="${CT_SYSROOT_DIR}/"                        \
+          STRIPTOOL=true                                     \
++         CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"         \
++         CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"       \
++         LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
+          ${CT_LIBC_UCLIBC_VERBOSITY}                        \
+          LOCALE_DATA_FILENAME="${uclibc_local_tarball}.tgz" \
+          pregen
+@@ -197,6 +201,9 @@
+     make ${CT_LIBC_UCLIBC_PARALLEL:+${JOBSFLAGS}}           \
+          CROSS=${CT_TARGET}-                                \
+          PREFIX="${CT_SYSROOT_DIR}/"                        \
++         CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"         \
++         CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"       \
++         LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
+          STRIPTOOL=true                                     \
+          ${CT_LIBC_UCLIBC_VERBOSITY}                        \
+          LOCALE_DATA_FILENAME="${uclibc_local_tarball}.tgz" \        --host=${CT_HOST}                           \
