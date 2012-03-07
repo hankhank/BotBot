@@ -9,3 +9,43 @@
 +    LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
      "${CT_SRC_DIR}/gcc-${CT_CC_VERSION}/configure"  \
          --build=${CT_BUILD}                         \
+
+--- /dev/null
++++ b/toolchain/uClibc/uClibc-0.9.32-add-arm922.patch
+@@ -0,0 +1,36 @@
++diff --git a/Rules.mak b/Rules.mak
++index fe06c24..a083e94 100644
++--- a/Rules.mak
+++++ b/Rules.mak
++@@ -341,6 +341,7 @@ ifeq ($(TARGET_ARCH),arm)
++   CPU_CFLAGS-$(CONFIG_ARM7TDMI)+=-mtune=arm7tdmi -march=armv4t
++   CPU_CFLAGS-$(CONFIG_ARM720T)+=-mtune=arm7tdmi -march=armv4t
++   CPU_CFLAGS-$(CONFIG_ARM920T)+=-mtune=arm9tdmi -march=armv4t
+++  CPU_CFLAGS-$(CONFIG_ARM922)+=-mtune=arm9tdmi -march=armv4
++   CPU_CFLAGS-$(CONFIG_ARM922T)+=-mtune=arm9tdmi -march=armv4t
++   CPU_CFLAGS-$(CONFIG_ARM926T)+=-mtune=arm9e -march=armv5te
++   CPU_CFLAGS-$(CONFIG_ARM10T)+=-mtune=arm10tdmi -march=armv5t
++diff --git a/extra/Configs/Config.arm b/extra/Configs/Config.arm
++index eb27a33..b3fbe79 100644
++--- a/extra/Configs/Config.arm
+++++ b/extra/Configs/Config.arm
++@@ -33,7 +33,7 @@ endchoice
++ config USE_BX
++   bool "Use BX in function return"
++   default y
++-  depends on !CONFIG_GENERIC_ARM && !CONFIG_ARM610 && !CONFIG_ARM710
+++  depends on !CONFIG_GENERIC_ARM && !CONFIG_ARM610 && !CONFIG_ARM710 && !CONFIG_ARM922
++   help
++     Use BX instruction for THUMB aware architectures.
++ 
++@@ -80,6 +80,10 @@ config CONFIG_ARM920T
++   bool "Arm 920T"
++   select ARCH_HAS_MMU
++ 
+++config CONFIG_ARM922
+++  bool "Arm 922"
+++  select ARCH_HAS_MMU
+++
++ config CONFIG_ARM922T
++   bool "Arm 922T"
++   select ARCH_HAS_MMU
