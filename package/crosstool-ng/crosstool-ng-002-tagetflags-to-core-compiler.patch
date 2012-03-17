@@ -1,15 +1,39 @@
---- a/scripts/build/cc/gcc.sh	2012-03-02 07:27:01.395387863 +1100
-+++ b/scripts/build/cc/gcc.sh	2012-03-02 07:27:26.508585146 +1100
-@@ -295,6 +295,9 @@
-     CC_FOR_BUILD="${CT_BUILD}-gcc"                  \
-     CFLAGS="${CT_CFLAGS_FOR_HOST}"                  \
-     LDFLAGS="${core_LDFLAGS[*]}"                    \
-+    CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"         \
-+    CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"       \
-+    LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
-     "${CT_SRC_DIR}/gcc-${CT_CC_VERSION}/configure"  \
-         --build=${CT_BUILD}                         \
-
+#--- a/scripts/build/cc/gcc.sh	2012-03-02 07:27:01.395387863 +1100
+#+++ b/scripts/build/cc/gcc.sh	2012-03-02 07:27:26.508585146 +1100
+#@@ -295,6 +295,9 @@
+#     CC_FOR_BUILD="${CT_BUILD}-gcc"                  \
+#     CFLAGS="${CT_CFLAGS_FOR_HOST}"                  \
+#     LDFLAGS="${core_LDFLAGS[*]}"                    \
+#+    CFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"         \
+#+    CXXFLAGS_FOR_TARGET="${CT_TARGET_CFLAGS}"       \
+#+    LDFLAGS_FOR_TARGET="${CT_TARGET_LDFLAGS}"       \
+#     "${CT_SRC_DIR}/gcc-${CT_CC_VERSION}/configure"  \
+#         --build=${CT_BUILD}                         \
+#
+--- a/patches/gcc/4.4.6/210-arm-unbreak-armv4t.patch    2012-03-17 12:56:14.294399598 +1100
++++ b/patches/gcc/4.4.6/210-arm-unbreak-armv4t.patch	2012-03-17 12:56:33.617627967 +1100
+@@ -6,7 +6,7 @@
+     SUBTARGET_CPU_DEFAULT to achieve this.  */
+  #undef  SUBTARGET_CPU_DEFAULT
+ -#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm10tdmi
+-+#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm9tdmi
+++#define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm922
+  
+  /* TARGET_BIG_ENDIAN_DEFAULT is set in
+     config.gcc for big endian configurations.  */
+--- /dev/null
++++ b/patches/gcc/4.4.6/420-add-arm922-tune-opt.patch
+@@ -0,0 +1,10 @@
++--- a/gcc/config/arm/arm-cores.def	2012-03-17 12:39:01.699993287 +1100
+++++ b/gcc/config/arm/arm-cores.def	2012-03-17 12:37:51.900373710 +1100
++@@ -70,6 +70,7 @@
++ /* V4 Architecture Processors */
++ ARM_CORE("arm8",          arm8,		4,	             FL_MODE26 | FL_LDSCHED, fastmul)
++ ARM_CORE("arm810",        arm810,	4,	             FL_MODE26 | FL_LDSCHED, fastmul)
+++ARM_CORE("arm922",        arm922,	4,	             FL_MODE26 |  FL_LDSCHED, fastmul)
++ ARM_CORE("strongarm",     strongarm,	4,	             FL_MODE26 | FL_LDSCHED | FL_STRONG, fastmul)
++ ARM_CORE("strongarm110",  strongarm110,	4,	             FL_MODE26 | FL_LDSCHED | FL_STRONG, fastmul)
++ ARM_CORE("strongarm1100", strongarm1100, 4,	             FL_MODE26 | FL_LDSCHED | FL_STRONG, fastmul)
 --- /dev/null
 +++ b/patches/uClibc/0.9.32/180-uClibc-0.9.32-add-arm922.patch
 @@ -0,0 +1,32 @@
@@ -19,7 +43,7 @@
 + 	CPU_CFLAGS-$(CONFIG_ARM7TDMI)+=-mtune=arm7tdmi -march=armv4t
 + 	CPU_CFLAGS-$(CONFIG_ARM720T)+=-mtune=arm7tdmi -march=armv4t
 + 	CPU_CFLAGS-$(CONFIG_ARM920T)+=-mtune=arm9tdmi -march=armv4t
-++	CPU_CFLAGS-$(CONFIG_ARM922)+=-mtune=arm9tdmi -march=armv4
+++	CPU_CFLAGS-$(CONFIG_ARM922)+=-mtune=arm922 -march=armv4
 + 	CPU_CFLAGS-$(CONFIG_ARM922T)+=-mtune=arm9tdmi -march=armv4t
 + 	CPU_CFLAGS-$(CONFIG_ARM926T)+=-mtune=arm9e -march=armv5te
 + 	CPU_CFLAGS-$(CONFIG_ARM10T)+=-mtune=arm10tdmi -march=armv5t
