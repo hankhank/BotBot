@@ -1,0 +1,11 @@
+# Build for Tivicwindrunner
+make botbot_tivicwindrunner_defconfig
+make
+
+# Build for qemu simulator
+make botbot_qemu_versatile_defconfig
+make
+
+# Run simulator
+./run_botbot_sim.sh
+
