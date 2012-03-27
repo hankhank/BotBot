@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
-# Buildroot 2012.02-git-ga6ad83d-dirty Configuration
-# Thu Mar  8 07:10:59 2012
+# Buildroot 2012.02-git-g7d461b2-dirty Configuration
+# Fri Mar 23 07:00:39 2012
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_arm=y
@@ -113,11 +113,11 @@ BR2_TOOLCHAIN_CTNG_CONFIG="board/tivic_windrunner/crosstool-ng.config"
 #
 BR2_TOOLCHAIN_CTNG_uClibc_CONFIG="board/tivic_windrunner/uClibc-0.9.32.config"
 # BR2_TOOLCHAIN_CTNG_uClibc_LARGEFILE is not set
-# BR2_TOOLCHAIN_CTNG_uClibc_INET_IPV6 is not set
+BR2_TOOLCHAIN_CTNG_uClibc_INET_IPV6=y
 # BR2_TOOLCHAIN_CTNG_uClibc_INET_RPC is not set
 # BR2_TOOLCHAIN_CTNG_uClibc_WCHAR is not set
 # BR2_TOOLCHAIN_CTNG_uClibc_LOCALE is not set
-# BR2_TOOLCHAIN_CTNG_CXX is not set
+BR2_TOOLCHAIN_CTNG_CXX=y
 # BR2_TOOLCHAIN_CTNG_THREADS_NONE is not set
 # BR2_TOOLCHAIN_CTNG_THREADS_PTHREADS is not set
 BR2_TOOLCHAIN_CTNG_THREADS_PTHREADS_OLD=y
@@ -131,6 +131,8 @@ BR2_TOOLCHAIN_CTNG_THREADS_PTHREADS_OLD=y
 #
 # BR2_PACKAGE_GDB_SERVER is not set
 # BR2_PACKAGE_GDB_HOST is not set
+BR2_INET_IPV6=y
+BR2_INSTALL_LIBSTDCPP=y
 BR2_TOOLCHAIN_HAS_THREADS=y
 BR2_TOOLCHAIN_HAS_THREADS_DEBUG_IF_NEEDED=y
 BR2_TOOLCHAIN_HAS_SHADOW_PASSWORDS=y
@@ -140,7 +142,6 @@ BR2_NEEDS_GETTEXT=y
 BR2_USE_MMU=y
 BR2_PREFER_SOFT_FLOAT=y
 BR2_SOFT_FLOAT=y
-#BR2_TARGET_OPTIMIZATION="-pipe -Wa,--fix-v4bx -Wl,--fix-v4bx"
 BR2_TARGET_OPTIMIZATION="-pipe"
 BR2_TARGET_LDFLAGS="-Wa,--fix-v4bx -Wl,--fix-v4bx"
 
@@ -178,6 +179,7 @@ BR2_BUSYBOX_VERSION="1.19.3"
 BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 # BR2_PACKAGE_BUSYBOX_SHOW_OTHERS is not set
 # BR2_PACKAGE_CUSTOMIZE is not set
+BR2_PACKAGE_SNAKEOS_FEATURES=y
 
 #
 # Audio and video libraries and applications
@@ -236,10 +238,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 # BR2_PACKAGE_LIBSNDFILE is not set
 # BR2_PACKAGE_LIBTHEORA is not set
 # BR2_PACKAGE_LIBVORBIS is not set
-
-#
-# Live555 needs C++ compiler
-#
+# BR2_PACKAGE_LIVE555 is not set
 # BR2_PACKAGE_MADPLAY is not set
 
 #
@@ -254,10 +253,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 # pulseaudio requires a toolchain with WCHAR support
 #
 # BR2_PACKAGE_SPEEX is not set
-
-#
-# taglib requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_TAGLIB is not set
 # BR2_PACKAGE_TREMOR is not set
 # BR2_PACKAGE_VORBIS_TOOLS is not set
 # BR2_PACKAGE_WAVPACK is not set
@@ -272,10 +268,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 #
 # Debugging, profiling and benchmark
 #
-
-#
-# bonnie++ requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_BONNIE is not set
 # BR2_PACKAGE_DHRYSTONE is not set
 # BR2_PACKAGE_DMALLOC is not set
 # BR2_PACKAGE_KEXEC is not set
@@ -288,10 +281,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 # BR2_PACKAGE_LTRACE is not set
 # BR2_PACKAGE_MEMSTAT is not set
 # BR2_PACKAGE_NETPERF is not set
-
-#
-# oprofile requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_OPROFILE is not set
 # BR2_PACKAGE_STRACE is not set
 # BR2_PACKAGE_WHETSTONE is not set
 # BR2_PACKAGE_PV is not set
@@ -319,10 +309,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 # gettext requires a toolchain with WCHAR support
 #
 # BR2_PACKAGE_GMP is not set
-
-#
-# gperf requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_GPERF is not set
 # BR2_PACKAGE_MAKE is not set
 # BR2_PACKAGE_MPC is not set
 # BR2_PACKAGE_MPFR is not set
@@ -369,10 +356,7 @@ BR2_PACKAGE_BUSYBOX_CONFIG="package/busybox/busybox-1.19.x.config"
 #
 # other GUIs
 #
-
-#
-# qt requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_QT is not set
 
 #
 # X.org requires a toolchain with WCHAR support
@@ -488,10 +472,7 @@ BR2_PACKAGE_MTD_FLASH_UNLOCK=y
 # BR2_PACKAGE_MTD_NANDWRITE is not set
 # BR2_PACKAGE_MTD_NFTLDUMP is not set
 # BR2_PACKAGE_MTD_NFTL_FORMAT is not set
-
-#
-# recv_image requires a toolchain with IPv6 support
-#
+# BR2_PACKAGE_MTD_RECV_IMAGE is not set
 # BR2_PACKAGE_MTD_RFDDUMP is not set
 # BR2_PACKAGE_MTD_RFDFORMAT is not set
 # BR2_PACKAGE_MTD_SERVE_IMAGE is not set
@@ -522,10 +503,7 @@ BR2_PACKAGE_MTD_MTDINFO=y
 # BR2_PACKAGE_RNG_TOOLS is not set
 # BR2_PACKAGE_SDPARM is not set
 # BR2_PACKAGE_SETSERIAL is not set
-
-#
-# smartmontools requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_SMARTMONTOOLS is not set
 
 #
 # squashfs requires a toolchain with LARGEFILE support
@@ -589,6 +567,10 @@ BR2_PACKAGE_ZLIB=y
 # Crypto
 #
 # BR2_PACKAGE_BEECRYPT is not set
+
+#
+# beecrypt C++ support requires a toolchain with WCHAR enabled
+#
 # BR2_PACKAGE_GNUTLS is not set
 # BR2_PACKAGE_LIBGCRYPT is not set
 # BR2_PACKAGE_LIBGPG_ERROR is not set
@@ -605,10 +587,7 @@ BR2_PACKAGE_OPENSSL=y
 # Database
 #
 # BR2_PACKAGE_BERKELEYDB is not set
-
-#
-# Mysql client requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_MYSQL_CLIENT is not set
 # BR2_PACKAGE_SQLITE is not set
 
 #
@@ -647,10 +626,7 @@ BR2_PACKAGE_OPENSSL=y
 # libgtk2 requires a toolchain with WCHAR and C++ support
 #
 # BR2_PACKAGE_LIBPNG is not set
-
-#
-# libraw requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_LIBRAW is not set
 # BR2_PACKAGE_LIBSVGTINY is not set
 # BR2_PACKAGE_LIBUNGIF is not set
 
@@ -694,10 +670,7 @@ BR2_PACKAGE_LIBUSB_COMPAT=y
 # Networking
 #
 # BR2_PACKAGE_LIBCGI is not set
-
-#
-# libcgicc requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_LIBCGICC is not set
 BR2_PACKAGE_LIBCURL=y
 # BR2_PACKAGE_CURL is not set
 # BR2_PACKAGE_LIBDNET is not set
@@ -745,10 +718,7 @@ BR2_PACKAGE_LIBFFI=y
 #
 # libnspr requires a toolchain with LARGEFILE support
 #
-
-#
-# libsigc++ requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_LIBSIGC is not set
 # BR2_PACKAGE_ORC is not set
 
 #
@@ -812,14 +782,7 @@ BR2_PACKAGE_READLINE=y
 #
 # bluez-utils require a toolchain with WCHAR support
 #
-
-#
-# bind requires a toolchain with LARGEFILE and IPV6 support
-#
-
-#
-# bmon requires a toolchain with IPv6 support
-#
+# BR2_PACKAGE_BMON is not set
 # BR2_PACKAGE_BRIDGE_UTILS is not set
 # BR2_PACKAGE_BWM_NG is not set
 # BR2_PACKAGE_CAN_UTILS is not set
@@ -827,10 +790,7 @@ BR2_PACKAGE_READLINE=y
 #
 # connman needs DBus enabled and a toolchain with resolver support
 #
-
-#
-# ctorrent requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_CTORRENT is not set
 # BR2_PACKAGE_CIFS_UTILS is not set
 # BR2_PACKAGE_CUPS is not set
 # BR2_PACKAGE_DHCPDUMP is not set
@@ -840,16 +800,10 @@ BR2_PACKAGE_DROPBEAR=y
 BR2_PACKAGE_DROPBEAR_SMALL=y
 # BR2_PACKAGE_DROPBEAR_WTMP is not set
 # BR2_PACKAGE_DROPBEAR_LASTLOG is not set
-
-#
-# ebtables requires a toolchain with IPv6 support
-#
+# BR2_PACKAGE_EBTABLES is not set
 # BR2_PACKAGE_ETHTOOL is not set
 # BR2_PACKAGE_HOSTAPD is not set
-
-#
-# iperf requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_IPERF is not set
 # BR2_PACKAGE_IPROUTE2 is not set
 # BR2_PACKAGE_IPSEC_TOOLS is not set
 
@@ -858,10 +812,7 @@ BR2_PACKAGE_DROPBEAR_SMALL=y
 #
 # BR2_PACKAGE_IPTABLES is not set
 # BR2_PACKAGE_IW is not set
-
-#
-# Kismet requires a toolchain with C++ support enabled
-#
+# BR2_PACKAGE_KISMET is not set
 # BR2_PACKAGE_LINKS is not set
 # BR2_PACKAGE_LRZSZ is not set
 # BR2_PACKAGE_MII_DIAG is not set
@@ -895,10 +846,7 @@ BR2_PACKAGE_NTP_NTPDATE=y
 # BR2_PACKAGE_NTP_NTPSNMPD is not set
 # BR2_PACKAGE_NTP_TICKADJ is not set
 # BR2_PACKAGE_NUTTCP is not set
-
-#
-# olsr requires a toolchain with IPv6 support
-#
+# BR2_PACKAGE_OLSR is not set
 # BR2_PACKAGE_OPENNTPD is not set
 # BR2_PACKAGE_OPENSSH is not set
 # BR2_PACKAGE_OPENVPN is not set
@@ -910,28 +858,23 @@ BR2_PACKAGE_NTP_NTPDATE=y
 # BR2_PACKAGE_PPTP_LINUX is not set
 # BR2_PACKAGE_PROFTPD is not set
 # BR2_PACKAGE_QUAGGA is not set
-
-#
-# radvd requires a toolchain with IPV6 support
-#
+# BR2_PACKAGE_RADVD is not set
 # BR2_PACKAGE_RSH_REDONE is not set
 BR2_PACKAGE_RSYNC=y
 # BR2_PACKAGE_SAMBA is not set
 # BR2_PACKAGE_SER2NET is not set
 # BR2_PACKAGE_SOCAT is not set
 # BR2_PACKAGE_SPAWN_FCGI is not set
-
-#
-# Squid requires a toolchain with C++ and IPv6 support enabled
-#
+# BR2_PACKAGE_SQUID is not set
 # BR2_PACKAGE_STUNNEL is not set
 # BR2_PACKAGE_TCPDUMP is not set
 # BR2_PACKAGE_TCPREPLAY is not set
 # BR2_PACKAGE_TN5250 is not set
-
-#
-# Transmission requires a toolchain with IPv6 support
-#
+BR2_PACKAGE_TRANSMISSION=y
+# BR2_PACKAGE_TRANSMISSION_UTP is not set
+BR2_PACKAGE_TRANSMISSION_CLI=y
+BR2_PACKAGE_TRANSMISSION_DAEMON=y
+BR2_PACKAGE_TRANSMISSION_REMOTE=y
 # BR2_PACKAGE_TTCP is not set
 
 #

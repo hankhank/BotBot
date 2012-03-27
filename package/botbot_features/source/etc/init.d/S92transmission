@@ -26,22 +26,22 @@
 # on this user
 #USERNAME=transmission
 USERNAME=default
-
-
+TRANS_PASSWORD=$(grep "password=" /etc/default/config | cut -d = -f 2)
+TRANS_DIR=$(grep "transmission_dir=" /etc/default/config | cut -d = -f 2)
+USE_TRANSMISSION=$(grep "use_transmission=" /etc/default/config | cut -d = -f 2)
 
 # ----- *ADVANCED* CONFIGURATION -----
 # Only change these options if you know what you are doing!
 #
 # The folder where Transmission stores the config & web files.
 # ONLY change this you have it at a non-default location
-#TRANSMISSION_HOME="/var/config/transmission-daemon"
+TRANSMISSION_HOME="/var/transmission/.config/transmission-daemon"
 #TRANSMISSION_WEB_HOME="/usr/share/transmission/web"
 #
 # The arguments passed on to transmission-daemon.
 # ONLY change this you need to, otherwise use the
 # settings file as per above.
 #TRANSMISSION_ARGS=""
-
 
 # ----- END OF CONFIGURATION -----
 #
@@ -62,10 +62,45 @@ SCRIPTNAME=/etc/init.d/$NAME
 # Load the VERBOSE setting and other rcS variables
 [ -f /etc/default/rcS ] && . /etc/default/rcS
 
+update_config()
+{
+        sed -ri "s/rpc-password\":.*/rpc-password\": \"${PASSWORD}\",/g" \
+            /etc/default/settings.json
+        cp -a /etc/default/settings.json ${TRANSMISSION_HOME}/settings.json   
+}
+
+do_setupconfig()
+{
+    rm -f /var/transmission
+    ln -s "${TRANS_DIR}" /var/transmission
+    if [ -f /var/transmission/.config/transmission-daemon/settings.json ] ; then
+        update_config
+    else    
+        if [ ${TRANS_DIR:-empty} = "empty" ] ; then
+            echo "Transmission directory was not set. Please set it first."
+            return 1
+        else
+            TRANS_MOUNTED=`echo ${TRANS_DIR} | cut -d '/' -f 3`
+            for MOUNT in $(grep "^/dev/sd" /proc/mounts | cut -d ' ' -f 2 | \
+                cut -d '/' -f 3) ; do      
+                if [ $MOUNT = $TRANS_MOUNTED ] ; then
+                    FOUND=1
+                    mkdir -p /var/transmission/.config/transmission-daemon
+                    mkdir -p /var/transmission/torrentwatch
+                    update_config
+                fi
+            done
+            if [ ${FOUND:-0} -eq 0 ] ; then
+                echo "Transmission dir not mounted. Mount it or change your config."
+                return 1
+            fi
+        fi
+    fi
+}
+
 #
 # Function that starts the daemon/service
 #
-
 do_start()
 {
     # Export the configuration/web directory, if set
@@ -75,6 +110,9 @@ do_start()
     if [ -n "$TRANSMISSION_WEB_HOME" ]; then
           export TRANSMISSION_WEB_HOME
     fi
+
+    # Update config and if successful start
+    do_setupconfig || return 2
 
     # Return
     #   0 if daemon has been started

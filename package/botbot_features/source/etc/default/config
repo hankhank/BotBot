@@ -1,6 +1,6 @@
-hostname=snake
+hostname=botbot
 username=root
-password=snake
+password=botbot
 
 tzposix=GMT0BST,M3.5.0/1,M10.5.0
 tzgeo=Europe/London
