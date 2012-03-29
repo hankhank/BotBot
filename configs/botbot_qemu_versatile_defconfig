@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
-# Buildroot 2012.02-git-g2bad0fc-dirty Configuration
-# Mon Mar 26 22:23:41 2012
+# Buildroot 2012.02-git-g2edd767-dirty Configuration
+# Fri Mar 30 07:13:04 2012
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_arm=y
@@ -170,7 +170,7 @@ BR2_BUSYBOX_VERSION="1.19.3"
 BR2_PACKAGE_BUSYBOX_CONFIG="board/botbot/busybox-1.19.x.config"
 # BR2_PACKAGE_BUSYBOX_SHOW_OTHERS is not set
 # BR2_PACKAGE_CUSTOMIZE is not set
-BR2_PACKAGE_SNAKEOS_FEATURES=y
+BR2_PACKAGE_BOTBOT_FEATURES=y
 
 #
 # Audio and video libraries and applications
@@ -418,8 +418,25 @@ BR2_PACKAGE_USBUTILS_ZLIB=y
 #
 # Interpreter languages and scripting
 #
-# BR2_PACKAGE_HASERL is not set
-# BR2_PACKAGE_LUA is not set
+BR2_PACKAGE_HASERL=y
+BR2_PACKAGE_HASERL_WITH_LUA=y
+# BR2_PACKAGE_HASERL_VERSION_0_8_X is not set
+BR2_PACKAGE_HASERL_VERSION_0_9_X=y
+BR2_PACKAGE_HASERL_VERSION="0.9.29"
+BR2_PACKAGE_LUA=y
+# BR2_PACKAGE_LUA_COMPILER is not set
+# BR2_PACKAGE_LUA_INTERPRETER is not set
+# BR2_PACKAGE_LUA_SHARED_LIBRARY is not set
+
+#
+# LUA libraries/modules
+#
+# BR2_PACKAGE_CGILUA is not set
+# BR2_PACKAGE_COPAS is not set
+# BR2_PACKAGE_COXPCALL is not set
+# BR2_PACKAGE_LUAFILESYSTEM is not set
+# BR2_PACKAGE_WSAPI is not set
+# BR2_PACKAGE_XAVANTE is not set
 # BR2_PACKAGE_MICROPERL is not set
 # BR2_PACKAGE_PHP is not set
 # BR2_PACKAGE_PYTHON is not set

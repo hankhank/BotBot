@@ -1,4 +1,4 @@
-#!/bin/haserl --upload-limit=200 --upload-dir=/tmp
+#!/usr/bin/haserl --upload-limit=200 --upload-dir=/tmp
 Content-type: text/html
 
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">   

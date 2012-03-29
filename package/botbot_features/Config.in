@@ -1,6 +1,6 @@
-config BR2_PACKAGE_SNAKEOS_FEATURES
-	bool "SnakeOS Features"
+config BR2_PACKAGE_BOTBOT_FEATURES
+	bool "BotBot Features"
 	help
 	  Add snakeos tid bits to the find file system
 
-	  (edit package/snakeos_features/snakeos_features.mk)
+	  (edit package/botbot_features/botbot_features.mk)

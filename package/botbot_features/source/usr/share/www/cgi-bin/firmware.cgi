@@ -1,4 +1,4 @@
-#!/bin/haserl --upload-limit=10000 --upload-dir=/tmp/upg
+#!/usr/bin/haserl --upload-limit=10000 --upload-dir=/tmp/upg
 Content-type: text/html
 
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">
