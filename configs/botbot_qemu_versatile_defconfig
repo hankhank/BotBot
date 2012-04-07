@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
-# Buildroot 2012.02-git-g2edd767-dirty Configuration
-# Fri Mar 30 07:13:04 2012
+# Buildroot 2012.02-git-g7060f6d-dirty Configuration
+# Sat Apr  7 16:05:36 2012
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_arm=y
@@ -184,6 +184,7 @@ BR2_PACKAGE_BOTBOT_FEATURES=y
 # BR2_PACKAGE_GSTREAMER is not set
 # BR2_PACKAGE_LAME is not set
 # BR2_PACKAGE_LIBAO is not set
+# BR2_PACKAGE_LIBAV is not set
 # BR2_PACKAGE_LIBCDAUDIO is not set
 # BR2_PACKAGE_LIBCUE is not set
 # BR2_PACKAGE_LIBCUEFILE is not set
@@ -203,6 +204,7 @@ BR2_PACKAGE_BOTBOT_FEATURES=y
 # BR2_PACKAGE_LIBVORBIS is not set
 # BR2_PACKAGE_LIVE555 is not set
 # BR2_PACKAGE_MADPLAY is not set
+BR2_PACKAGE_MINIDLNA=y
 # BR2_PACKAGE_MPD is not set
 # BR2_PACKAGE_MPG123 is not set
 # BR2_PACKAGE_MPLAYER is not set
