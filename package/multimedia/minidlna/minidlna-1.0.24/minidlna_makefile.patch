@@ -1,0 +1,45 @@
+--- minidlna-1.0.20/Makefile	2011-04-21 10:50:44.000000000 +0200
++++ minidlna-1.0.20-patched/Makefile	2011-09-12 15:28:31.640259704 +0200
+@@ -13,9 +13,10 @@
+ #CFLAGS = -Wall -O -D_GNU_SOURCE -g -DDEBUG
+ #CFLAGS = -Wall -g -Os -D_GNU_SOURCE
+ CFLAGS = -Wall -g -O3 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 \
+-	 -I/usr/include/ffmpeg \
+-	 -I/usr/include/libavutil -I/usr/include/libavcodec -I/usr/include/libavformat \
+-	 -I/usr/include/ffmpeg/libavutil -I/usr/include/ffmpeg/libavcodec -I/usr/include/ffmpeg/libavformat
++	 -I. \
++	 -I$(STAGING_DIR)/usr/include/ffmpeg \
++	 -I$(STAGING_DIR)/usr/include/libavutil -I${STAGING_DIR}/usr/include/libavcodec -I${STAGING_DIR}/usr/include/libavformat \
++	 -I${STAGING_DIR}/usr/include/ffmpeg/libavutil -I${STAGING_DIR}/usr/include/ffmpeg/libavcodec -I${STAGING_DIR}/usr/include/ffmpeg/libavformat -I${STAGING_DIR}/include/
+ #STATIC_LINKING: CFLAGS += -DSTATIC
+ #STATIC_LINKING: LDFLAGS = -static
+ CC = gcc
+@@ -23,8 +24,8 @@
+ INSTALL = install
+ 
+ INSTALLPREFIX ?= $(DESTDIR)/usr
+-SBININSTALLDIR = $(INSTALLPREFIX)/sbin
+-ETCINSTALLDIR = $(DESTDIR)/etc
++SBININSTALLDIR = ${STAGING_DIR}/sbin
++ETCINSTALLDIR = ${STAGING_DIR}/etc
+ 
+ BASEOBJS = minidlna.o upnphttp.o upnpdescgen.o upnpsoap.o \
+            upnpreplyparse.o minixml.o \
+@@ -37,7 +38,7 @@
+ 
+ ALLOBJS = $(BASEOBJS) $(LNXOBJS)
+ 
+-LIBS = -lpthread -lexif -ljpeg -lsqlite3 -lavformat -lavutil -lavcodec -lid3tag -lFLAC -logg -lvorbis
++LIBS = -lpthread -lexif -ljpeg -lsqlite3 -lavformat -lavutil -lavcodec -lid3tag -lFLAC -logg -lvorbis -lm
+ #STATIC_LINKING: LIBS = -lvorbis -logg -lm -lsqlite3 -lpthread -lexif -ljpeg -lFLAC -lm -lid3tag -lz -lavformat -lavutil -lavcodec -lm
+ 
+ TESTUPNPDESCGENOBJS = testupnpdescgen.o upnpdescgen.o
+@@ -62,7 +63,7 @@
+ 	$(INSTALL) -d $(ETCINSTALLDIR)
+ 	$(INSTALL) --mode=0644 minidlna.conf $(ETCINSTALLDIR)
+ 
+-minidlna:	$(BASEOBJS) $(LNXOBJS) $(LIBS)
++minidlna:	$(BASEOBJS) $(LNXOBJS) 
+ 	@echo Linking $@
+ 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(BASEOBJS) $(LNXOBJS) $(LIBS)
+ 

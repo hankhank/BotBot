@@ -1,0 +1,29 @@
+--- minidlna-1.0.22/minidlna.c	2011-08-05 22:36:54.000000000 +0200
++++ minidlna-1.0.22-patched/minidlna.c	2011-10-19 17:23:47.293532786 +0200
+@@ -885,7 +885,7 @@
+ #ifdef ENABLE_NLS
+ 	setlocale(LC_MESSAGES, "");
+ 	setlocale(LC_CTYPE, "en_US.utf8");
+-	DPRINTF(E_DEBUG, L_GENERAL, "Using locale dir %s\n", bindtextdomain("minidlna", getenv("TEXTDOMAINDIR")));
++	//DPRINTF(E_DEBUG, L_GENERAL, "Using locale dir %s\n", bindtextdomain("minidlna", getenv("TEXTDOMAINDIR")));
+ 	textdomain("minidlna");
+ #endif
+ 
+@@ -936,6 +936,9 @@
+ 			DPRINTF(E_FATAL, L_GENERAL, "ERROR: Failed to create sqlite database!  Exiting...\n");
+ 		}
+ #if USE_FORK
++		int fd;
++		fd = open("/tmp/dlna_scan_in_progress", O_APPEND|O_CREAT, 0666);
++		close(fd);
+ 		scanning = 1;
+ 		sqlite3_close(db);
+ 		scanner_pid = fork();
+@@ -961,6 +964,7 @@
+ 				free(last_name);
+ 			}
+ 			freeoptions();
++			remove("/tmp/dlna_scan_in_progress");
+ 			exit(EXIT_SUCCESS);
+ 		}
+ #else

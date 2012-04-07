@@ -1,0 +1,53 @@
+--- a/upnpglobalvars.h	2011-09-12 15:05:18.761700477 +0200
++++ b/upnpglobalvars.h	2011-09-08 10:38:19.445018271 +0200
+@@ -52,7 +52,6 @@
+ #include <time.h>
+ 
+ #include "minidlnatypes.h"
+-#include "config.h"
+ 
+ #include <sqlite3.h>
+ 
+--- a/minidlnatypes.h	2011-05-28 02:01:21.000000000 +0200
++++ b/minidlnatypes.h	2011-09-12 15:09:31.183860437 +0200
+@@ -29,7 +29,6 @@
+ #ifndef __MINIDLNATYPES_H__
+ #define __MINIDLNATYPES_H__
+ 
+-#include "config.h"
+ #include <netinet/in.h>
+ 
+ /* structure for storing lan addresses
+ 
+--- a/inotify.c	2011-05-03 01:50:52.000000000 +0200
++++ b/inotify.c	2011-09-12 15:15:07.481408357 +0200
+@@ -15,7 +15,6 @@
+  * You should have received a copy of the GNU General Public License
+  * along with MiniDLNA. If not, see <http://www.gnu.org/licenses/>.
+  */
+-#include "config.h"
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
+
+--- a/scanner.c	2011-05-03 01:50:52.000000000 +0200
++++ b/scanner.c	2011-09-12 15:17:21.688429611 +0200
+@@ -27,7 +27,6 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ 
+-#include "config.h"
+ 
+ #ifdef ENABLE_NLS
+ #include <libintl.h>
+
+--- a/tagutils/tagutils.c	2010-11-12 00:48:14.000000000 +0100
++++ b/tagutils/tagutils.c	2011-09-12 15:14:31.009674319 +0200
+@@ -36,7 +36,6 @@
+ #include <vorbis/codec.h>
+ #include <FLAC/metadata.h>
+ 
+-#include "../config.h"
+ #ifdef HAVE_ICONV_H
+ #include <iconv.h>
+ #endif

@@ -1,0 +1,16 @@
+config BR2_PACKAGE_MINIDLNA
+	bool "minidlna"
+	help
+        Minidlna server
+        Prerequisites :
+
+        - libexif
+        - libjpeg
+        - libid3tag
+        - libFLAC
+        - libvorbis
+        - sqlite3
+        - libavformat (the ffmpeg libraries)
+        - libuuid
+
+
