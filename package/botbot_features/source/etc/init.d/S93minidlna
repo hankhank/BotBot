@@ -1,0 +1,25 @@
+#!/bin/sh
+MINIDLNA=/sbin/minidlna
+ARGS='-f /etc/minidlna.conf -p 19121'
+
+case "$1" in
+
+    start)  echo "Starting minidlna" 
+        start-stop-daemon --start --quiet --pidfile /var/run/minidlna.pid --startas $MINIDLNA -- $ARGS 
+    ;;
+
+    stop)   echo "Stopping minidlna"
+        start-stop-daemon --stop --quiet --pidfile /var/run/minidlna.pid
+    ;;
+
+    restart|reload|force-reload)
+        echo "Restarting minidlna"
+        start-stop-daemon --stop --retry 5 --quiet --pidfile /var/run/minidlna.pid
+        start-stop-daemon --start --quiet --pidfile /var/run/minidlna.pid --startas $MINIDLNA -- $ARGS 
+    ;;
+
+    *)      echo "Usage: /etc/init.d/S93minidlna {start|stop|restart|reload|force-reload}"
+    exit 2
+    ;;
+esac
+exit 0
